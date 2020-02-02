@@ -18,7 +18,7 @@ namespace Myra.Graphics2D.UI
 #if !XENKO
 			RasterizerState = DefaultAssets.UIRasterizerState,
 			BlendState = BlendState.AlphaBlend,
-			SamplerState = SamplerState.PointClamp,
+			SamplerState = SamplerState.PointWrap,
 			DepthStencilState = null
 #else
 			BlendState = BlendStates.AlphaBlend,
