@@ -70,7 +70,7 @@ namespace Myra.Graphics2D.UI
 				return base.IsPlaced;
 			}
 
-			internal set
+			set
 			{
 				// If we're not releasing the button on touch left,
 				// we have to do it on touch up

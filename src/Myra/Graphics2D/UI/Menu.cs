@@ -170,7 +170,7 @@ namespace Myra.Graphics2D.UI
 				return base.IsPlaced;
 			}
 
-			internal set
+			set
 			{
 				if (IsPlaced)
 				{

@@ -476,7 +476,7 @@ namespace Myra.Graphics2D.UI
 				return _isPlaced;
 			}
 
-			internal set
+			set
 			{
 				_isPlaced = value;
 				IsMouseInside = false;
