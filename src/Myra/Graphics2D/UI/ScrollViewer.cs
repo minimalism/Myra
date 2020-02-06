@@ -368,7 +368,7 @@ namespace Myra.Graphics2D.UI
 			ScrollPosition = scrollPosition;
 		}
 
-		internal override void MoveChildren(Point delta)
+		public override void MoveChildren(Point delta)
 		{
 			base.MoveChildren(delta);
 

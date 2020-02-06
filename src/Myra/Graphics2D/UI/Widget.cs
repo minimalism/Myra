@@ -967,7 +967,7 @@ namespace Myra.Graphics2D.UI
 			_layoutState = LayoutState.Invalid;
 		}
 
-		internal virtual void MoveChildren(Point delta)
+		public virtual void MoveChildren(Point delta)
 		{
 			_bounds.X += delta.X;
 			_bounds.Y += delta.Y;

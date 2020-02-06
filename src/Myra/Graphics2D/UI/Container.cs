@@ -201,7 +201,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		internal override void MoveChildren(Point delta)
+		public override void MoveChildren(Point delta)
 		{
 			base.MoveChildren(delta);
 
