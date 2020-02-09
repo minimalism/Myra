@@ -15,7 +15,7 @@ using Clr = Xenko.Core.Mathematics.Color;
 
 namespace Myra.Graphics2D.Text
 {
-	public class TextChunk
+	public class TextChunk : ITextChunk
 	{
 		protected string _text;
 		protected readonly SpriteFont _font;
@@ -27,11 +27,11 @@ namespace Myra.Graphics2D.Text
 		public string Text { get { return _text; } }
 		public Point Size { get { return _size; } }
 
-		public int LineIndex { get; internal set; }
-		public int ChunkIndex { get; internal set; }
-		public int Top { get; internal set; }
+		public int LineIndex { get; set; }
+		public int ChunkIndex { get; set; }
+		public int Top { get; set; }
 		public int TextStartIndex { get; internal set; }
-		public Color? Color;
+		public Color? Color { get; set; }
 
 		public TextChunk(SpriteFont font, string text, Point size, bool calculateGlyps)
 		{

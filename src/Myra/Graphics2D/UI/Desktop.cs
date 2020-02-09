@@ -364,7 +364,10 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public static Action<Keys> KeyDownHandler;
+		public static Point InlineSpriteSize = new Point(24, 24);
+		public static Func<string, IImage> SpriteFunc = null;
+
+        public static Action<Keys> KeyDownHandler;
 
 		public static event EventHandler MouseMoved;
 

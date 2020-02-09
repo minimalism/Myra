@@ -14,5 +14,6 @@ namespace Myra.Graphics2D.Text
 		public int CharsCount;
 		public Color? Color;
 		public bool LineEnd;
+		public bool IsSprite;
 	}
 }

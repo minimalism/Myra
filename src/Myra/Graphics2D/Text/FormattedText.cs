@@ -156,6 +156,9 @@ namespace Myra.Graphics2D.Text
 			}
 		}
 
+		private const char ColorCommandChar = 'c';
+		private const char SpriteCommandChar = 'i';
+
 		internal ChunkInfo LayoutRow(int startIndex, int? width, bool parseCommands)
 		{
 			var r = new ChunkInfo
@@ -179,7 +182,7 @@ namespace Myra.Graphics2D.Text
 
 				if (SupportsCommands && c == '\\')
 				{
-					if (i < _text.Length - 2 && _text[i + 1] == 'c' && _text[i + 2] == '{')
+					if (i < _text.Length - 2 && _text[i + 1] is char commandChar && _text[i + 2] == '{')
 					{
 						// Find end
 						var startPos = i + 3;
@@ -195,9 +198,19 @@ namespace Myra.Graphics2D.Text
 								return r;
 							}
 
-							if (parseCommands)
+							if (parseCommands && commandChar == ColorCommandChar) 
 							{
 								r.Color = ColorStorage.FromName(_text.Substring(startPos, j - startPos));
+							}
+							else if (commandChar == SpriteCommandChar) 
+							{
+								// Break because this is a sprite chunk
+								r.LineEnd = false;
+								r.X = UI.Desktop.InlineSpriteSize.X;
+								r.Y = UI.Desktop.InlineSpriteSize.Y;
+								r.IsSprite = true;
+								r.CharsCount = j - r.StartIndex + 1;
+								return r;
 							}
 
 							r.StartIndex = j + 1;
@@ -336,11 +349,19 @@ namespace Myra.Graphics2D.Text
 				if (i == c.StartIndex && c.CharsCount == 0)
 					break;
 
-				var chunk = new TextChunk(_font, _text.Substring(c.StartIndex, c.CharsCount), new Point(c.X, c.Y), CalculateGlyphs)
-				{
-					TextStartIndex = i,
-					Color = c.Color
-				};
+				ITextChunk chunk;
+				if (c.IsSprite) {
+					// trim off the \\i{} tag and pass in only the sprite id
+					chunk = new SpriteChunk(_text.Substring(c.StartIndex + 3, c.CharsCount - 4), new Point(c.X, c.Y)) {
+						Color = c.Color
+					};
+				}
+				else {
+					chunk = new TextChunk(_font, _text.Substring(c.StartIndex, c.CharsCount), new Point(c.X, c.Y), CalculateGlyphs) {
+						TextStartIndex = i,
+						Color = c.Color
+					};
+				}
 
 				width -= chunk.Size.X;
 
