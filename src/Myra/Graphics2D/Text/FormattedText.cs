@@ -205,11 +205,13 @@ namespace Myra.Graphics2D.Text
 							else if (commandChar == SpriteCommandChar) 
 							{
 								// Break because this is a sprite chunk
-								r.LineEnd = false;
+								r.LineEnd = j == _text.Length - 1;
 								r.X = UI.Desktop.InlineSpriteSize.X;
 								r.Y = UI.Desktop.InlineSpriteSize.Y;
 								r.IsSprite = true;
 								r.CharsCount = j - r.StartIndex + 1;
+								lastBreakPosition = j;
+								lastBreakMeasure = UI.Desktop.InlineSpriteSize;
 								return r;
 							}
 
