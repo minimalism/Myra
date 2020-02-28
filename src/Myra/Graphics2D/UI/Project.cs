@@ -10,9 +10,9 @@ using System.Collections.Generic;
 using Myra.Attributes;
 using System.Linq;
 using Myra.Graphics2D.TextureAtlases;
-using XNAssets.Assets;
 using XNAssets.Utility;
 using Myra.Graphics2D.Brushes;
+using XNAssets;
 
 #if !XENKO
 using Microsoft.Xna.Framework.Graphics;
@@ -329,11 +329,10 @@ namespace Myra.Graphics2D.UI
 
 			// Find styles dict of that widget
 			var typeName = w.GetType().Name;
-			if (typeName == "ImageTextButton" || typeName == "ImageButton" || typeName == "TextButton")
+			var styleTypeNameAttribute = w.GetType().FindAttribute<StyleTypeNameAttribute>();
+			if (styleTypeNameAttribute != null)
 			{
-				// Small hack
-				// ImageTextButton styles are stored in Stylesheet.ButtonStyles
-				typeName = "Button";
+				typeName = styleTypeNameAttribute.Name;
 			}
 
 			var stylesDictPropertyName = typeName + "Styles";

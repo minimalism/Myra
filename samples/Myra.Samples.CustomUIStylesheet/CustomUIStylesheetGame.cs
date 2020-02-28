@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Myra.Graphics2D.TextureAtlases;
 using Myra.Graphics2D.UI;
 using Myra.Graphics2D.UI.Styles;
-using XNAssets.Assets;
+using XNAssets;
 
 namespace Myra.Samples.CustomUIStylesheet
 {
@@ -42,7 +42,7 @@ namespace Myra.Samples.CustomUIStylesheet
 			_allWidgets._button.Image = textureAtlas["music-off"];
 			_allWidgets._imageButton.Image = textureAtlas["sound-off"];
 
-			Desktop.Widgets.Add(_allWidgets);
+			Desktop.Root = _allWidgets;
 		}
 
 		protected override void Update(GameTime gameTime)

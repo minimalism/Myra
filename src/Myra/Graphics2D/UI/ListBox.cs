@@ -16,6 +16,7 @@ namespace Myra.Graphics2D.UI
 	public class ListBox : Selector<ScrollViewer, ListItem>
 	{
 		private readonly VerticalStackPanel _box;
+		internal ComboBox _parentComboBox;
 
 		[Browsable(false)]
 		[XmlIgnore]
@@ -132,6 +133,26 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
+		private void ComboHideDropdown()
+		{
+			if (_parentComboBox == null)
+			{
+				return;
+			}
+
+			_parentComboBox.HideDropdown();
+		}
+
+		protected override void OnSelectedItemChanged()
+		{
+			base.OnSelectedItemChanged();
+
+			if (_parentComboBox != null)
+			{
+				_parentComboBox.UpdateSelectedItem();
+			}
+		}
+
 #if !XENKO
 		public override void OnKeyDown(Keys k)
 		{
@@ -153,9 +174,19 @@ namespace Myra.Graphics2D.UI
 						UpdateScrolling();
 					}
 					break;
+				case Keys.Enter:
+					ComboHideDropdown();
+					break;
 			}
 		}
 #endif
+
+		public override void OnTouchDown()
+		{
+			base.OnTouchDown();
+
+			ComboHideDropdown();
+		}
 
 		private void UpdateScrolling()
 		{

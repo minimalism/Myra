@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Linq;
 using Myra.MML;
-using XNAssets.Assets;
+using XNAssets;
 
 #if !XENKO
 using Microsoft.Xna.Framework;
@@ -125,7 +125,7 @@ namespace Myra.Graphics2D.TextureAtlases
 					region = new TextureRegion(texture, bounds);
 				} else
 				{
-					var padding = new PaddingInfo
+					var padding = new Thickness
 					{
 						Left = int.Parse(entry.Attribute(NinePatchLeftName).Value),
 						Top = int.Parse(entry.Attribute(NinePatchTopName).Value),
