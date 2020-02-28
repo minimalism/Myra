@@ -18,7 +18,7 @@ using Microsoft.Xna.Framework.Input;
 using System.Threading;
 using System.Xml.Linq;
 using Myra.Graphics2D;
-using XNAssets.Assets;
+using XNAssets;
 using XNAssets.Utility;
 
 namespace MyraPad
@@ -403,7 +403,7 @@ namespace MyraPad
 			_ui._topSplitPane.SetSplitterPosition(0, _state != null ? _state.TopSplitterPosition : 0.75f);
 			_ui._leftSplitPane.SetSplitterPosition(0, _state != null ? _state.LeftSplitterPosition : 0.5f);
 
-			Desktop.Widgets.Add(_ui);
+			Desktop.Root = _ui;
 
 			UpdateMenuFile();
 		}

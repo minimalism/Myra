@@ -13,6 +13,7 @@ using Myra.Graphics2D.TextureAtlases;
 using System.IO;
 using Myra.Graphics2D.Brushes;
 using XNAssets.Utility;
+using Myra.Attributes;
 
 #if !XENKO
 using Microsoft.Xna.Framework;
@@ -108,7 +109,16 @@ namespace Myra.Graphics2D.UI.Properties
 					}
 				};
 
-				_mark.IsPressed = true;
+				var expanded = true;
+				if (parentProperty != null && parentProperty.FindAttribute<DesignerFoldedAttribute>() != null)
+				{
+					expanded = false;
+				}
+
+				if (expanded)
+				{
+					_mark.IsPressed = true;
+				}
 
 				var label = new Label(null)
 				{
@@ -225,6 +235,19 @@ namespace Myra.Graphics2D.UI.Properties
 				}
 
 				return _settings;
+			}
+		}
+
+		public int FirstColumnWidth
+		{
+			get
+			{
+				return (int)InternalChild.ColumnsProportions[0].Value;
+			}
+
+			set
+			{
+				InternalChild.ColumnsProportions[0].Value = value;
 			}
 		}
 
@@ -589,9 +612,10 @@ namespace Myra.Graphics2D.UI.Properties
 
 						if (record.Type.IsValueType)
 						{
+							// Handle structs
 							var tg = this;
 							var pg = tg._parentGrid;
-							while (pg != null && tg._parentProperty != null)
+							while (pg != null && tg._parentProperty != null && tg._parentProperty.Type.IsValueType)
 							{
 								tg._parentProperty.SetValue(pg._object, tg._object);
 
@@ -865,7 +889,7 @@ namespace Myra.Graphics2D.UI.Properties
 				var record = records[i];
 
 				var hasSetter = record.HasSetter;
-				if (_parentProperty != null && !_parentProperty.HasSetter)
+				if (_parentProperty != null && _parentProperty.Type.IsValueType && !_parentProperty.HasSetter)
 				{
 					hasSetter = false;
 				}
@@ -970,9 +994,17 @@ namespace Myra.Graphics2D.UI.Properties
 					continue;
 				}
 
+				var name = record.Name;
+				var dn = record.FindAttribute<DisplayNameAttribute>();
+
+				if (dn != null)
+				{
+					name = dn.DisplayName;
+				}
+
 				var nameLabel = new Label
 				{
-					Text = record.Name,
+					Text = name,
 					VerticalAlignment = VerticalAlignment.Center,
 					GridColumn = 0,
 					GridRow = oldY

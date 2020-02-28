@@ -5,6 +5,7 @@ using Myra.Utility;
 using System.Xml.Serialization;
 using Myra.MML;
 using Myra.Graphics2D.UI.Properties;
+using Myra.Attributes;
 
 #if !XENKO
 using Microsoft.Xna.Framework;
@@ -24,8 +25,10 @@ namespace Myra.Graphics2D.UI
 			LocationInvalid,
 			Invalid
 		}
+
 		#region PrivateData
 
+		private Thickness _margin, _borderThickness, _padding;
 		private int _left, _top;
 		private int? _minWidth, _minHeight, _maxWidth, _maxHeight, _width, _height;
 		private int _gridColumn, _gridRow, _gridColumnSpan = 1, _gridRowSpan = 1;
@@ -46,12 +49,12 @@ namespace Myra.Graphics2D.UI
 		private Rectangle _actualBounds;
 		private bool _visible;
 
-		private int _paddingLeft, _paddingRight, _paddingTop, _paddingBottom;
 		private float _opacity = 1.0f;
 
 		private bool _enabled;
 
 		#endregion
+
 		#region Data acsessor
 		/// <summary>
 		/// Internal use only. (MyraPad)
@@ -221,74 +224,134 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		[Category("Layout")]
-		[DefaultValue(0)]
+		[Obsolete("Use Padding")]
+		[Browsable(false)]
 		public int PaddingLeft
 		{
-			get { return _paddingLeft; }
+			get
+			{
+				return Padding.Left;
+			}
 
 			set
 			{
-				if (value == _paddingLeft)
-				{
-					return;
-				}
-
-				_paddingLeft = value;
-				InvalidateMeasure();
+				var p = Padding;
+				p.Left = value;
+				Padding = p;
 			}
 		}
 
-		[Category("Layout")]
-		[DefaultValue(0)]
+
+		[Obsolete("Use Padding")]
+		[Browsable(false)]
 		public int PaddingRight
 		{
-			get { return _paddingRight; }
+			get
+			{
+				return Padding.Right;
+			}
 
 			set
 			{
-				if (value == _paddingRight)
-				{
-					return;
-				}
-
-				_paddingRight = value;
-				InvalidateMeasure();
+				var p = Padding;
+				p.Right = value;
+				Padding = p;
 			}
 		}
 
-		[Category("Layout")]
-		[DefaultValue(0)]
+		[Obsolete("Use Padding")]
+		[Browsable(false)]
 		public int PaddingTop
 		{
-			get { return _paddingTop; }
+			get
+			{
+				return Padding.Top;
+			}
 
 			set
 			{
-				if (value == _paddingTop)
+				var p = Padding;
+				p.Top = value;
+				Padding = p;
+			}
+		}
+
+		[Obsolete("Use Padding")]
+		[Browsable(false)]
+		public int PaddingBottom
+		{
+			get
+			{
+				return Padding.Top;
+			}
+
+			set
+			{
+				var p = Padding;
+				p.Bottom = value;
+				Padding = p;
+			}
+		}
+
+		[Category("Layout")]
+		[DesignerFolded]
+		public Thickness Margin
+		{
+			get
+			{
+				return _margin;
+			}
+
+			set
+			{
+				if (_margin == value)
 				{
 					return;
 				}
 
-				_paddingTop = value;
+				_margin = value;
+				InvalidateMeasure();
+			}
+		}
+
+		[Category("Appearance")]
+		[DesignerFolded]
+		public Thickness BorderThickness
+		{
+			get
+			{
+				return _borderThickness;
+			}
+
+			set
+			{
+				if (_borderThickness == value)
+				{
+					return;
+				}
+
+				_borderThickness = value;
 				InvalidateMeasure();
 			}
 		}
 
 		[Category("Layout")]
-		[DefaultValue(0)]
-		public int PaddingBottom
+		[DesignerFolded]
+		public Thickness Padding
 		{
-			get { return _paddingBottom; }
+			get
+			{
+				return _padding;
+			}
 
 			set
 			{
-				if (value == _paddingBottom)
+				if (_padding == value)
 				{
 					return;
 				}
 
-				_paddingBottom = value;
+				_padding = value;
 				InvalidateMeasure();
 			}
 		}
@@ -563,6 +626,30 @@ namespace Myra.Graphics2D.UI
 		public IBrush FocusedBackground { get; set; }
 
 		[Category("Appearance")]
+		public IBrush Border
+		{
+			get; set;
+		}
+
+		[Category("Appearance")]
+		public IBrush OverBorder
+		{
+			get; set;
+		}
+
+		[Category("Appearance")]
+		public IBrush DisabledBorder
+		{
+			get; set;
+		}
+
+		[Category("Appearance")]
+		public IBrush FocusedBorder
+		{
+			get; set;
+		}
+
+		[Category("Appearance")]
 		[DefaultValue(false)]
 		public virtual bool ClipToBounds { get; set; }
 
@@ -589,6 +676,22 @@ namespace Myra.Graphics2D.UI
 			get
 			{
 				return _bounds;
+			}
+		}
+
+		protected Rectangle BorderBounds
+		{
+			get
+			{
+				return _bounds - _margin;
+			}
+		}
+
+		protected Rectangle BackgroundBounds
+		{
+			get
+			{
+				return BorderBounds - _borderThickness;
 			}
 		}
 
@@ -646,16 +749,26 @@ namespace Myra.Graphics2D.UI
 
 		[Browsable(false)]
 		[XmlIgnore]
-		public int PaddingWidth
+		public int MBPWidth
 		{
-			get { return _paddingLeft + _paddingRight; }
+			get
+			{
+				return Margin.Left + Margin.Right +
+				  BorderThickness.Left + BorderThickness.Right +
+				  Padding.Left + Padding.Right;
+			}
 		}
 
 		[Browsable(false)]
 		[XmlIgnore]
-		public int PaddingHeight
+		public int MBPHeight
 		{
-			get { return _paddingTop + _paddingBottom; }
+			get
+			{
+				return Margin.Top + Margin.Bottom +
+				  BorderThickness.Top + BorderThickness.Bottom +
+				  Padding.Top + Padding.Bottom;
+			}
 		}
 
 		[Browsable(false)]
@@ -675,17 +788,6 @@ namespace Myra.Graphics2D.UI
 		[Browsable(false)]
 		[XmlIgnore]
 		internal protected virtual bool MouseWheelFocusCanBeNull
-		{
-			get { return true; }
-		}
-
-		/// <summary>
-		/// When Width/Height is set and HorizontalAlignment/VerticalAlignment is set to Stretch
-		/// This property determines what to use for layout
-		/// </summary>
-		[Browsable(false)]
-		[XmlIgnore]
-		internal protected virtual bool PrioritizeStrethOverSize
 		{
 			get { return true; }
 		}
@@ -717,7 +819,9 @@ namespace Myra.Graphics2D.UI
 				return IsMouseInside && Active;
 			}
 		}
+
 		#endregion
+
 		#region Events
 		public event EventHandler VisibleChanged;
 		public event EventHandler MeasureChanged;
@@ -752,6 +856,7 @@ namespace Myra.Graphics2D.UI
 		}
 
 		#region Functions
+
 		public virtual IBrush GetCurrentBackground()
 		{
 			var result = Background;
@@ -767,6 +872,26 @@ namespace Myra.Graphics2D.UI
 			else if (UseHoverRenderable && OverBackground != null)
 			{
 				result = OverBackground;
+			}
+
+			return result;
+		}
+
+		public virtual IBrush GetCurrentBorder()
+		{
+			var result = Border;
+
+			if (!Enabled && DisabledBorder != null)
+			{
+				result = DisabledBorder;
+			}
+			else if (Enabled && IsKeyboardFocused && FocusedBorder != null)
+			{
+				result = FocusedBorder;
+			}
+			else if (UseHoverRenderable && OverBorder != null)
+			{
+				result = OverBorder;
 			}
 
 			return result;
@@ -811,7 +936,33 @@ namespace Myra.Graphics2D.UI
 			var background = GetCurrentBackground();
 			if (background != null)
 			{
-				context.Draw(background, Bounds);
+				context.Draw(background, BackgroundBounds);
+			}
+
+			// Borders
+			var border = GetCurrentBorder();
+			if (border != null)
+			{
+				var borderBounds = BorderBounds;
+				if (BorderThickness.Left > 0)
+				{
+					context.Draw(border, new Rectangle(borderBounds.X, borderBounds.Y, BorderThickness.Left, borderBounds.Height));
+				}
+
+				if (BorderThickness.Top > 0)
+				{
+					context.Draw(border, new Rectangle(borderBounds.X, borderBounds.Y, borderBounds.Width, BorderThickness.Top));
+				}
+
+				if (BorderThickness.Right > 0)
+				{
+					context.Draw(border, new Rectangle(borderBounds.Right - BorderThickness.Right, borderBounds.Y, BorderThickness.Right, borderBounds.Height));
+				}
+
+				if (BorderThickness.Bottom > 0)
+				{
+					context.Draw(border, new Rectangle(borderBounds.X, borderBounds.Bottom - BorderThickness.Bottom, borderBounds.Width, BorderThickness.Bottom));
+				}
 			}
 
 			var oldView = context.View;
@@ -863,77 +1014,65 @@ namespace Myra.Graphics2D.UI
 			else
 			{
 				// Lerp available size by Width/Height or MaxWidth/MaxHeight
-				if (!PrioritizeStrethOverSize || HorizontalAlignment != HorizontalAlignment.Stretch)
+				if (Width != null && availableSize.X > Width.Value)
 				{
-					if (Width != null && availableSize.X > Width.Value)
-					{
-						availableSize.X = Width.Value;
-					}
-					else if (MaxWidth != null && availableSize.X > MaxWidth.Value)
-					{
-						availableSize.X = MaxWidth.Value;
-					}
+					availableSize.X = Width.Value;
+				}
+				else if (MaxWidth != null && availableSize.X > MaxWidth.Value)
+				{
+					availableSize.X = MaxWidth.Value;
 				}
 
-				if (!PrioritizeStrethOverSize || VerticalAlignment != VerticalAlignment.Stretch)
+				if (Height != null && availableSize.Y > Height.Value)
 				{
-					if (Height != null && availableSize.Y > Height.Value)
-					{
-						availableSize.Y = Height.Value;
-					}
-					else if (MaxHeight != null && availableSize.Y > MaxHeight.Value)
-					{
-						availableSize.Y = MaxHeight.Value;
-					}
+					availableSize.Y = Height.Value;
+				}
+				else if (MaxHeight != null && availableSize.Y > MaxHeight.Value)
+				{
+					availableSize.Y = MaxHeight.Value;
 				}
 
 				// Do the actual measure
 				result = InternalMeasure(availableSize);
 
 				// Result lerp
-				if (!PrioritizeStrethOverSize || HorizontalAlignment != HorizontalAlignment.Stretch)
+				if (Width.HasValue)
 				{
-					if (Width.HasValue)
+					result.X = Width.Value;
+				}
+				else
+				{
+					if (MinWidth.HasValue && result.X < MinWidth.Value)
 					{
-						result.X = Width.Value;
+						result.X = MinWidth.Value;
 					}
-					else
-					{
-						if (MinWidth.HasValue && result.X < MinWidth.Value)
-						{
-							result.X = MinWidth.Value;
-						}
 
-						if (MaxWidth.HasValue && result.X > MaxWidth.Value)
-						{
-							result.X = MaxWidth.Value;
-						}
+					if (MaxWidth.HasValue && result.X > MaxWidth.Value)
+					{
+						result.X = MaxWidth.Value;
 					}
 				}
 
-				if (!PrioritizeStrethOverSize || VerticalAlignment != VerticalAlignment.Stretch)
+				if (Height.HasValue)
 				{
-					if (Height.HasValue)
+					result.Y = Height.Value;
+				}
+				else
+				{
+					if (MinHeight.HasValue && result.Y < MinHeight.Value)
 					{
-						result.Y = Height.Value;
+						result.Y = MinHeight.Value;
 					}
-					else
-					{
-						if (MinHeight.HasValue && result.Y < MinHeight.Value)
-						{
-							result.Y = MinHeight.Value;
-						}
 
-						if (MaxHeight.HasValue && result.Y > MaxHeight.Value)
-						{
-							result.Y = MaxHeight.Value;
-						}
+					if (MaxHeight.HasValue && result.Y > MaxHeight.Value)
+					{
+						result.Y = MaxHeight.Value;
 					}
 				}
 			}
 
-			result.X += PaddingWidth;
-			result.Y += PaddingHeight;
+			result.X += MBPWidth;
+			result.Y += MBPHeight;
 
 			_lastMeasureSize = result;
 			_lastMeasureAvailableSize = availableSize;
@@ -1013,17 +1152,14 @@ namespace Myra.Graphics2D.UI
 				// Resolve possible conflict beetween Alignment set to Streth and Size explicitly set
 				var containerSize = _containerBounds.Size();
 
-				if (!PrioritizeStrethOverSize)
+				if (HorizontalAlignment == HorizontalAlignment.Stretch && Width != null && Width.Value < containerSize.X)
 				{
-					if (HorizontalAlignment == HorizontalAlignment.Stretch && Width != null && Width.Value < containerSize.X)
-					{
-						containerSize.X = Width.Value;
-					}
+					containerSize.X = Width.Value;
+				}
 
-					if (VerticalAlignment == VerticalAlignment.Stretch && Height != null && Height.Value < containerSize.Y)
-					{
-						containerSize.Y = Height.Value;
-					}
+				if (VerticalAlignment == VerticalAlignment.Stretch && Height != null && Height.Value < containerSize.Y)
+				{
+					containerSize.Y = Height.Value;
 				}
 
 				// Align
@@ -1125,22 +1261,14 @@ namespace Myra.Graphics2D.UI
 			DisabledBackground = style.DisabledBackground;
 			FocusedBackground = style.FocusedBackground;
 
-			if (style.PaddingLeft != null)
-			{
-				PaddingLeft = style.PaddingLeft.Value;
-			}
-			if (style.PaddingRight != null)
-			{
-				PaddingRight = style.PaddingRight.Value;
-			}
-			if (style.PaddingTop != null)
-			{
-				PaddingTop = style.PaddingTop.Value;
-			}
-			if (style.PaddingBottom != null)
-			{
-				PaddingBottom = style.PaddingBottom.Value;
-			}
+			Border = style.Border;
+			OverBorder = style.OverBorder;
+			DisabledBorder = style.DisabledBorder;
+			FocusedBorder = style.FocusedBorder;
+
+			Margin = style.Margin;
+			BorderThickness = style.BorderThickness;
+			Padding = style.Padding;
 		}
 
 		public void SetStyle(Stylesheet stylesheet, string name)
@@ -1271,22 +1399,7 @@ namespace Myra.Graphics2D.UI
 
 		internal Rectangle CalculateClientBounds(Rectangle clientBounds)
 		{
-			clientBounds.X += _paddingLeft;
-			clientBounds.Y += _paddingTop;
-
-			clientBounds.Width -= PaddingWidth;
-			if (clientBounds.Width < 0)
-			{
-				clientBounds.Width = 0;
-			}
-
-			clientBounds.Height -= PaddingHeight;
-			if (clientBounds.Height < 0)
-			{
-				clientBounds.Height = 0;
-			}
-
-			return clientBounds;
+			return clientBounds - Margin - BorderThickness - Padding;
 		}
 
 		public void RemoveFromParent()

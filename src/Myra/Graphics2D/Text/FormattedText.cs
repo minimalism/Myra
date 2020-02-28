@@ -348,8 +348,14 @@ namespace Myra.Graphics2D.Text
 			while (i < _text.Length)
 			{
 				var c = LayoutRow(i, width, true);
-				if (i == c.StartIndex && c.CharsCount == 0)
+				if (i == c.StartIndex && c.CharsCount == 0) 
+				{
+					if (line.TextStartIndex != c.StartIndex) 
+					{
+						lines.Add(line);
+					}
 					break;
+				}
 
 				ITextChunk chunk;
 				if (c.IsSprite) {
