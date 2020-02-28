@@ -333,8 +333,14 @@ namespace Myra.Graphics2D.Text
 			while (i < _text.Length)
 			{
 				var c = LayoutRow(i, width, true);
-				if (i == c.StartIndex && c.CharsCount == 0)
+				if (i == c.StartIndex && c.CharsCount == 0) 
+				{
+					if (line.TextStartIndex != c.StartIndex) 
+					{
+						lines.Add(line);
+					}
 					break;
+				}
 
 				var chunk = new TextChunk(_font, _text.Substring(c.StartIndex, c.CharsCount), new Point(c.X, c.Y), CalculateGlyphs)
 				{
