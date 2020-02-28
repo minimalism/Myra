@@ -121,14 +121,25 @@ namespace Myra.Graphics2D.UI
 				_mousePosition = value;
 				MouseMoved.Invoke();
 
+				bool positionConsumed = false;
 				for (var i = ChildrenCopy.Count - 1; i >= 0; --i)
 				{
 					var w = ChildrenCopy[i];
-					if (w.Visible && w.Enabled)
+					if (!positionConsumed) 
 					{
-						if (w.HandleMouseMovement() || w.IsModal)
+						if (w.Visible && w.Enabled) 
 						{
-							break;
+							if (w.HandleMouseMovement() || w.IsModal) 
+							{
+								positionConsumed = true;
+							}
+						}
+					}
+					else 
+					{
+						if (w.IsMouseInside) 
+						{
+							w.OnMouseLeft();
 						}
 					}
 				}
