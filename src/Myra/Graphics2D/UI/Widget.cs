@@ -715,38 +715,6 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public int Padding
-		{
-			set 
-			{
-				bool invalidated = false;
-				if (value != _paddingLeft)
-				{
-					invalidated = true;
-					_paddingLeft = value;
-				}
-				if (value != _paddingRight)
-				{
-					invalidated = true;
-					_paddingRight = value;
-				}
-				if (value != _paddingTop)
-				{
-					invalidated = true;
-					_paddingTop = value;
-				}
-				if (value != _paddingBottom)
-				{
-					invalidated = true;
-					_paddingBottom = value;
-				}
-				if (invalidated)
-				{
-					InvalidateMeasure();
-				}
-			}
-		}
-
 		[Browsable(false)]
 		[XmlIgnore]
 		public int MBPWidth
