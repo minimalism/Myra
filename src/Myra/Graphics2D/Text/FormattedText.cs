@@ -285,10 +285,9 @@ namespace Myra.Graphics2D.Text
 
 		public Point Measure(int? width)
 		{
-			var result = Point.Zero;
 
 			var key = GetMeasureKey(width);
-			if (_measures.TryGetValue(key, out result))
+			if (_measures.TryGetValue(key, out Point result))
 			{
 				return result;
 			}
@@ -371,7 +370,7 @@ namespace Myra.Graphics2D.Text
 				{
 					if (line.TextStartIndex != c.StartIndex) 
 					{
-						lines.Add(line);
+						_lines.Add(line);
 					}
 					break;
 				}

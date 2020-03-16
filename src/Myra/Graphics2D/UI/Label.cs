@@ -58,7 +58,6 @@ namespace Myra.Graphics2D.UI
 				{
 					return;
 				}
-
 				_formattedText.Text = value;
 				InvalidateMeasure();
 			}
@@ -206,9 +205,9 @@ namespace Myra.Graphics2D.UI
 			{
 				return Point.Zero;
 			}
-
-			var width = availableSize.X;
-			var height = availableSize.Y;
+			
+			var width = availableSize.X - Padding.Width - Margin.Width - BorderThickness.Width;
+			var height = availableSize.Y - Padding.Height - Margin.Height - BorderThickness.Height;
 			var ellipsisEnabled = _autoEllipsisMethod != AutoEllipsisMethod.None;
 
 			var result = Point.Zero;
@@ -320,7 +319,7 @@ namespace Myra.Graphics2D.UI
 		{
 			base.Arrange();
 
-			_formattedText.Width = _wrap ? Bounds.Width : default(int?);
+			_formattedText.Width = _wrap ? ActualBounds.Width : default(int?);
 		}
 
 		public void ApplyLabelStyle(LabelStyle style)
