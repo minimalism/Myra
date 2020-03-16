@@ -19,7 +19,7 @@ namespace Myra.Graphics2D.UI
 {
 	public class Widget : BaseObject
 	{
-		internal enum LayoutState
+		private enum LayoutState
 		{
 			Normal,
 			LocationInvalid,
@@ -544,6 +544,11 @@ namespace Myra.Graphics2D.UI
 				_isPlaced = value;
 				IsMouseInside = false;
 				IsTouchInside = false;
+
+				if (_isPlaced)
+				{
+					InvalidateLayout();
+				}
 			}
 		}
 
@@ -679,7 +684,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		protected Rectangle BorderBounds
+		internal Rectangle BorderBounds
 		{
 			get
 			{
@@ -791,8 +796,8 @@ namespace Myra.Graphics2D.UI
 		#endregion
 
 		#region Events
+
 		public event EventHandler VisibleChanged;
-		public event EventHandler MeasureChanged;
 		public event EventHandler EnabledChanged;
 
 		public event EventHandler LocationChanged;
@@ -815,6 +820,7 @@ namespace Myra.Graphics2D.UI
 		public event EventHandler<GenericEventArgs<Keys>> KeyUp;
 		public event EventHandler<GenericEventArgs<Keys>> KeyDown;
 		public event EventHandler<GenericEventArgs<char>> Char;
+
 		#endregion
 
 		public Widget()
@@ -1212,7 +1218,13 @@ namespace Myra.Graphics2D.UI
 
 			InvalidateLayout();
 
-			MeasureChanged.Invoke(this);
+			if (Parent != null)
+			{
+				Parent.InvalidateMeasure();
+			} else
+			{
+				Desktop.InvalidateLayout();
+			}
 		}
 
 		public void ApplyWidgetStyle(WidgetStyle style)
@@ -1402,7 +1414,7 @@ namespace Myra.Graphics2D.UI
 				return;
 			}
 
-			var isTouchOver = Bounds.Contains(Desktop.TouchPosition);
+			var isTouchOver = BorderBounds.Contains(Desktop.TouchPosition);
 			if (isTouchOver)
 			{
 				OnTouchDoubleClick();
@@ -1411,7 +1423,7 @@ namespace Myra.Graphics2D.UI
 
 		internal bool HandleMouseMovement()
 		{
-			var isMouseOver = Bounds.Contains(Desktop.MousePosition);
+			var isMouseOver = BorderBounds.Contains(Desktop.MousePosition);
 			var wasMouseOver = IsMouseInside;
 
 			if (isMouseOver && !wasMouseOver)
@@ -1439,7 +1451,7 @@ namespace Myra.Graphics2D.UI
 				return;
 			}
 
-			if (Bounds.Contains(Desktop.TouchPosition))
+			if (BorderBounds.Contains(Desktop.TouchPosition))
 			{
 				OnTouchDown();
 			}
@@ -1460,7 +1472,7 @@ namespace Myra.Graphics2D.UI
 
 		internal bool HandleTouchMovement()
 		{
-			var isTouchOver = Bounds.Contains(Desktop.TouchPosition);
+			var isTouchOver = BorderBounds.Contains(Desktop.TouchPosition);
 			var wasTouchOver = IsTouchInside;
 
 			if (isTouchOver && !wasTouchOver)

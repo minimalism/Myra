@@ -691,15 +691,19 @@ namespace Myra.Graphics2D.UI
 				foreach (Widget w in args.NewItems)
 				{
 					w.IsPlaced = true;
-					w.MeasureChanged += WOnMeasureChanged;
-
 				}
 			}
 			else if (args.Action == NotifyCollectionChangedAction.Remove)
 			{
 				foreach (Widget w in args.OldItems)
 				{
-					w.MeasureChanged -= WOnMeasureChanged;
+					w.IsPlaced = false;
+				}
+			}
+			else if (args.Action == NotifyCollectionChangedAction.Reset)
+			{
+				foreach (Widget w in ChildrenCopy)
+				{
 					w.IsPlaced = false;
 				}
 			}
@@ -714,11 +718,6 @@ namespace Myra.Graphics2D.UI
 
 			InvalidateLayout();
 			_widgetsDirty = true;
-		}
-
-		private static void WOnMeasureChanged(object sender, EventArgs eventArgs)
-		{
-			InvalidateLayout();
 		}
 
 		private static void EnsureRenderContext()
@@ -1179,7 +1178,7 @@ namespace Myra.Graphics2D.UI
 
 		private static bool InternalIsPointOverGUI(Point p, Widget w)
 		{
-			if (!w.Visible || !w.Bounds.Contains(p))
+			if (!w.Visible || !w.BorderBounds.Contains(p))
 			{
 				return false;
 			}

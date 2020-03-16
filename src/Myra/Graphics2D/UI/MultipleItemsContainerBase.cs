@@ -1,5 +1,4 @@
 using Myra.Attributes;
-using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -60,8 +59,6 @@ namespace Myra.Graphics2D.UI
 				{
 					w.IsPlaced = IsPlaced;
 					w.Parent = this;
-					w.MeasureChanged += ChildOnMeasureChanged;
-					w.VisibleChanged += ChildOnVisibleChanged;
 				}
 			}
 			else if (args.Action == NotifyCollectionChangedAction.Remove)
@@ -70,37 +67,18 @@ namespace Myra.Graphics2D.UI
 				{
 					w.IsPlaced = false;
 					w.Parent = null;
-					w.VisibleChanged -= ChildOnVisibleChanged;
-					w.MeasureChanged -= ChildOnMeasureChanged;
 				}
 			}
-			else if (args.Action == NotifyCollectionChangedAction.Reset) 
+			else if (args.Action == NotifyCollectionChangedAction.Reset)
 			{
-				foreach (Widget w in ChildrenCopy) 
+				foreach (Widget w in ChildrenCopy)
 				{
 					w.IsPlaced = false;
 					w.Parent = null;
-					w.VisibleChanged -= ChildOnVisibleChanged;
-					w.MeasureChanged -= ChildOnMeasureChanged;
 				}
 			}
 
-			InvalidateMeasure();
 			InvalidateChildren();
-		}
-
-		private void ChildOnMeasureChanged(object sender, EventArgs eventArgs)
-		{
-			var widget = (Widget) sender;
-			if (widget.Visible)
-			{
-				InvalidateMeasure();
-			}
-		}
-
-		private void ChildOnVisibleChanged(object sender, EventArgs eventArgs)
-		{
-			InvalidateMeasure();
 		}
 
 		public override void RemoveChild(Widget widget)

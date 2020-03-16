@@ -92,7 +92,7 @@ namespace Myra.Graphics2D.Text
 			else return null;
 		}
 
-		public virtual Color Draw(SpriteBatch batch, Point pos, Color color, bool useChunkColor, float opacity = 1.0f)
+		public Color Draw(SpriteBatch batch, Point pos, Color color, bool useChunkColor, float opacity = 1.0f)
 		{
 			foreach (var chunk in Chunks)
 			{
