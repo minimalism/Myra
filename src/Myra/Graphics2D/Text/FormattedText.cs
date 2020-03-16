@@ -193,7 +193,7 @@ namespace Myra.Graphics2D.Text
 							// Found
 							if (i > r.StartIndex)
 							{
-								// Break right here, as next chunk has another color
+								// Break right here, as next chunk is a command block
 								r.LineEnd = false;
 								return r;
 							}
@@ -348,7 +348,7 @@ namespace Myra.Graphics2D.Text
 			while (i < _text.Length)
 			{
 				var c = LayoutRow(i, width, true);
-				if (i == c.StartIndex && c.CharsCount == 0) 
+				if (i == c.StartIndex && c.CharsCount == 0 && c.LineEnd) 
 				{
 					if (line.TextStartIndex != c.StartIndex) 
 					{
