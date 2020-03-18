@@ -195,7 +195,10 @@ namespace Myra.Graphics2D.UI
 		{
 			base.OnTouchDown();
 
-			ComboHideDropdown();
+			if (_box.Bounds.Contains(Desktop.TouchPosition)) 
+			{
+				ComboHideDropdown();
+			}
 		}
 
 		private void UpdateScrolling()
