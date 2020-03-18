@@ -45,6 +45,11 @@ namespace Myra.Graphics2D.UI
 			get { return true; }
 		}
 
+		protected internal override bool AcceptsMouseWheelFocus
+		{ 
+			get { return InternalChild.AcceptsMouseWheelFocus; }
+		}
+
 		public ListBox(string styleName = Stylesheet.DefaultStyleName) : base(new ScrollViewer())
 		{
 			_box = new VerticalStackPanel();
@@ -116,6 +121,11 @@ namespace Myra.Graphics2D.UI
 			{
 				RemoveItem((ListItem)_box.Widgets[0].Tag);
 			}
+		}
+
+		public override void OnMouseWheel(float delta) {
+			base.OnMouseWheel(delta);
+			InternalChild.OnMouseWheel(delta);
 		}
 
 		private void ButtonOnPressed(object sender, EventArgs eventArgs)
