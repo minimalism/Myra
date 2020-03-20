@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.421
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29709.97
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{EAB0AA24-7185-4897-A866-AE87AF3F2E0B}"
 EndProject
@@ -34,6 +34,11 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Myra.Samples.AllWidgets.MonoGame", "..\samples\Myra.Samples.AllWidgets\Myra.Samples.AllWidgets.MonoGame.csproj", "{86685C49-7408-4E47-9B34-AC93812CB3EC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Myra.Samples.ObjectEditor", "..\samples\Myra.Samples.ObjectEditor\Myra.Samples.ObjectEditor.csproj", "{7A6283C5-C2CF-4CE0-877A-B8A95D391007}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6CBB7D3C-5DB6-4120-AF5E-AD47F8E73CFF}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

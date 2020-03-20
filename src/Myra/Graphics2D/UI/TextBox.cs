@@ -557,7 +557,7 @@ namespace Myra.Graphics2D.UI
 			CursorPosition = newPosition;
 		}
 
-		private void ResetSelection()
+		public void ResetSelection()
 		{
 			SelectStart = SelectEnd = CursorPosition;
 		}

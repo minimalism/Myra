@@ -69,6 +69,44 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
+		public override bool Visible
+		{
+			get
+			{
+				return base.Visible;
+			}
+
+			set
+			{
+				base.Visible = value;
+
+				foreach (var child in ChildrenCopy)
+				{
+					child.ParentVisible = value;
+				}
+			}
+		}
+
+		internal override bool ParentVisible {
+			get
+			{
+				return base.ParentVisible;
+			}
+
+			set
+			{
+				if (base.ParentVisible != value)
+				{
+					base.ParentVisible = value;
+
+					foreach (var child in ChildrenCopy)
+					{
+						child.ParentVisible = value;
+					}
+				}
+			}
+		}
+
 		public abstract Widget GetChild(int index);
 
 		private void UpdateWidgets()
