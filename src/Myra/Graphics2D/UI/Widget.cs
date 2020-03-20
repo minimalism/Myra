@@ -48,6 +48,7 @@ namespace Myra.Graphics2D.UI
 		private Rectangle _bounds;
 		private Rectangle _actualBounds;
 		private bool _visible;
+		private bool _parentVisible;
 
 		private float _opacity = 1.0f;
 
@@ -508,9 +509,9 @@ namespace Myra.Graphics2D.UI
 
 		[Category("Behavior")]
 		[DefaultValue(true)]
-		public bool Visible
+		public virtual bool Visible
 		{
-			get { return _visible; }
+			get { return _visible && _parentVisible; }
 
 			set
 			{
@@ -520,10 +521,27 @@ namespace Myra.Graphics2D.UI
 				}
 
 				_visible = value;
-				IsMouseInside = false;
-				IsTouchInside = false;
 
 				OnVisibleChanged();
+			}
+		}
+
+		virtual internal bool ParentVisible
+		{
+			get { return _parentVisible; }
+			set
+			{
+				if (_parentVisible == value)
+				{
+					return;
+				}
+
+				bool prevValue = Visible;
+				_parentVisible = value;
+				if (prevValue != Visible)
+				{
+					OnVisibleChanged();
+				}
 			}
 		}
 
@@ -542,6 +560,7 @@ namespace Myra.Graphics2D.UI
 			set
 			{
 				_isPlaced = value;
+
 				IsMouseInside = false;
 				IsTouchInside = false;
 
@@ -826,6 +845,7 @@ namespace Myra.Graphics2D.UI
 		public Widget()
 		{
 			Visible = true;
+			ParentVisible = true;
 			Enabled = true;
 		}
 
@@ -1221,7 +1241,8 @@ namespace Myra.Graphics2D.UI
 			if (Parent != null)
 			{
 				Parent.InvalidateMeasure();
-			} else
+			}
+			else
 			{
 				Desktop.InvalidateLayout();
 			}
@@ -1361,6 +1382,16 @@ namespace Myra.Graphics2D.UI
 
 		public virtual void OnVisibleChanged()
 		{
+			if (!Visible && IsTouchInside)
+			{
+				OnMouseLeft();
+			}
+			else if (Visible && BorderBounds.Contains(Desktop.MousePosition))
+			{
+				OnMouseEntered();
+			}
+
+
 			InvalidateMeasure();
 			VisibleChanged.Invoke(this);
 		}
@@ -1423,6 +1454,11 @@ namespace Myra.Graphics2D.UI
 
 		internal bool HandleMouseMovement()
 		{
+			if (!Visible)
+			{
+				return false;
+			}
+
 			var isMouseOver = BorderBounds.Contains(Desktop.MousePosition);
 			var wasMouseOver = IsMouseInside;
 
