@@ -1382,15 +1382,29 @@ namespace Myra.Graphics2D.UI
 
 		public virtual void OnVisibleChanged()
 		{
-			if (!Visible && IsTouchInside)
+			if (IsMouseInside)
 			{
-				OnMouseLeft();
+				if (!Visible || !Active)
+				{
+					OnMouseLeft();
+				}
 			}
-			else if (Visible && BorderBounds.Contains(Desktop.MousePosition))
+			else if (Visible && Active && BorderBounds.Contains(Desktop.MousePosition))
 			{
 				OnMouseEntered();
 			}
 
+			if (IsTouchInside)
+			{
+				if (!Visible || !Active)
+				{
+					OnTouchLeft();
+				}
+			}
+			else if (Visible && Active && BorderBounds.Contains(Desktop.TouchPosition))
+			{
+				OnTouchEntered();
+			}
 
 			InvalidateMeasure();
 			VisibleChanged.Invoke(this);
@@ -1406,6 +1420,29 @@ namespace Myra.Graphics2D.UI
 
 		protected internal virtual void OnActiveChanged()
 		{
+			if (IsMouseInside)
+			{
+				if (!Visible || !Active)
+				{
+					OnMouseLeft();
+				}
+			}
+			else if (Visible && Active && BorderBounds.Contains(Desktop.MousePosition))
+			{
+				OnMouseEntered();
+			}
+
+			if (IsTouchInside)
+			{
+				if (!Visible || !Active)
+				{
+					OnTouchLeft();
+				}
+			}
+			else if (Visible && Active && BorderBounds.Contains(Desktop.TouchPosition))
+			{
+				OnTouchEntered();
+			}
 		}
 
 		internal Rectangle CalculateClientBounds(Rectangle clientBounds)
@@ -1440,7 +1477,7 @@ namespace Myra.Graphics2D.UI
 
 		internal void HandleTouchDoubleClick()
 		{
-			if (!Visible)
+			if (!Visible || !Active)
 			{
 				return;
 			}
@@ -1454,7 +1491,7 @@ namespace Myra.Graphics2D.UI
 
 		internal bool HandleMouseMovement()
 		{
-			if (!Visible)
+			if (!Visible || !Active)
 			{
 				return false;
 			}
@@ -1482,7 +1519,7 @@ namespace Myra.Graphics2D.UI
 
 		internal void HandleTouchDown()
 		{
-			if (!Visible)
+			if (!Visible || !Active)
 			{
 				return;
 			}
@@ -1495,7 +1532,7 @@ namespace Myra.Graphics2D.UI
 
 		internal void HandleTouchUp()
 		{
-			if (!Visible)
+			if (!Visible || !Active)
 			{
 				return;
 			}
