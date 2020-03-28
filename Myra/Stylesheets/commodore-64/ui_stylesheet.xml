@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Stylesheet TextureRegionAtlas="ui_stylesheet_atlas.xml">
+  <Colors>
+    <Color Id="green" Value="#00FF00FF" />
+    <Color Id="light_grey" Value="#CCCCCCFF" />
+    <Color Id="white" Value="#FFFFFFFF" />
+    <Color Id="red" Value="#FF0000FF" />
+    <Color Id="light_blue" Value="#A5A5FFFF" />
+    <Color Id="grey" Value="#B2B2B2FF" />
+    <Color Id="dark_grey" Value="#666666FF" />
+    <Color Id="blue" Value="#4242E7FF" />
+    <Color Id="black" Value="#000000FF" />
+  </Colors>
+  <Fonts>
+    <Font Id="commodore-64" File="commodore-64.fnt"/>
+  </Fonts>
+  <DesktopStyle Background="blue" />
+  <LabelStyles>
+    <LabelStyle Font="commodore-64" TextColor="white" />
+  </LabelStyles>
+  <TextBoxStyles>
+    <TextBoxStyle Background="white" TextColor="black" Font="commodore-64" Cursor="cursor-black" Selection="light-blue" />
+  </TextBoxStyles>
+  <ScrollViewerStyles>
+    <ScrollViewerStyle HorizontalScrollBackground="scroll-bar" HorizontalScrollKnob="scroll-bar-horizontal-knob" VerticalScrollBackground="scroll-bar" VerticalScrollKnob="scroll-bar-vertical-knob" />
+  </ScrollViewerStyles>
+  <ButtonStyles>
+    <ButtonStyle Background="button" PaddingLeft="8" PaddingRight="8" PaddingTop="5" PaddingBottom="5" PressedBackground="button-down" />
+  </ButtonStyles>
+  <CheckBoxStyles>
+    <CheckBoxStyle>
+      <LabelStyle Font="commodore-64" TextColor="white" />
+      <ImageStyle Image="check-box-off" PressedImage="check-box" />
+    </CheckBoxStyle>
+  </CheckBoxStyles>
+  <HorizontalSliderStyles>
+    <HorizontalSliderStyle Background="slider">
+      <KnobStyle>
+        <ImageStyle Image="slider-knob" />
+      </KnobStyle>
+    </HorizontalSliderStyle>
+  </HorizontalSliderStyles>
+  <VerticalSliderStyles>
+    <VerticalSliderStyle Background="slider">
+      <KnobStyle>
+        <ImageStyle Image="slider-knob" />
+      </KnobStyle>
+    </VerticalSliderStyle>
+  </VerticalSliderStyles>
+  <HorizontalProgressBarStyles>
+    <HorizontalProgressBarStyle Background="progress-bar" Filler="progress-bar-knob" />
+  </HorizontalProgressBarStyles>
+  <VerticalProgressBarStyles>
+    <VerticalProgressBarStyle Background="progress-bar" Filler="progress-bar-knob" />
+  </VerticalProgressBarStyles>
+  <ComboBoxStyles>
+    <ComboBoxStyle Background="list">
+      <LabelStyle Font="commodore-64" TextColor="white" />
+      <ListBoxStyle Background="blue">
+        <ListItemStyle OverBackground="white" PaddingLeft="8" PaddingRight="8" PaddingTop="5" PaddingBottom="5" PressedBackground="button-down">
+          <LabelStyle Font="commodore-64" TextColor="white" OverTextColor="blue" PressedTextColor="blue" />
+        </ListItemStyle>
+      </ListBoxStyle>
+    </ComboBoxStyle>
+  </ComboBoxStyles>
+  <ListBoxStyles>
+    <ListBoxStyle>
+      <ListItemStyle PressedBackground="white">
+        <LabelStyle Font="commodore-64" TextColor="white" PressedTextColor="blue" />
+      </ListItemStyle>
+    </ListBoxStyle>
+  </ListBoxStyles>
+  <TreeStyles>
+    <TreeStyle SelectionBackground="progress-bar">
+      <MarkStyle>
+        <ImageStyle Image="plus" PressedImage="minus" />
+      </MarkStyle>
+      <LabelStyle Font="commodore-64" TextColor="white" />
+    </TreeStyle>
+  </TreeStyles>
+  <HorizontalSplitPaneStyles>
+    <HorizontalSplitPaneStyle>
+      <HandleStyle Background="horizontal-split-pane" />
+    </HorizontalSplitPaneStyle>
+  </HorizontalSplitPaneStyles>
+  <VerticalSplitPaneStyles>
+    <VerticalSplitPaneStyle>
+      <HandleStyle Background="vertical-split-pane" />
+    </VerticalSplitPaneStyle>
+  </VerticalSplitPaneStyles>
+  <WindowStyles>
+    <WindowStyle Background="window" PaddingLeft="25" PaddingRight="25" PaddingTop="25" PaddingBottom="25">
+      <TitleStyle Font="commodore-64" TextColor="white" />
+    </WindowStyle>
+  </WindowStyles>
+  <DialogStyles>
+    <DialogStyle Background="dialog" PaddingLeft="25" PaddingRight="25" PaddingTop="25" PaddingBottom="25">
+      <TitleStyle Font="commodore-64" TextColor="white" />
+    </DialogStyle>
+  </DialogStyles>
+</Stylesheet>
