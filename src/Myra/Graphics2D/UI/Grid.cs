@@ -743,7 +743,7 @@ namespace Myra.Graphics2D.UI
 			{
 				for (var i = 0; i < _rowHeights.Count; ++i)
 				{
-					_cellLocationsY[i] = _actualSize.Y - _cellLocationsY[i];
+					_cellLocationsY[i] = _cellLocationsY[_cellLocationsY.Count - 1] - _cellLocationsY[i];
 				}
 			}
 

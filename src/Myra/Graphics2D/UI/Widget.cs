@@ -38,6 +38,7 @@ namespace Myra.Graphics2D.UI
 		private bool _isModal = false;
 		private bool _measureDirty = true;
 		private bool _active = false;
+		private bool _forceInactive = false;
 		private bool _isPlaced = false;
 
 		private Point _lastMeasureSize;
@@ -593,7 +594,7 @@ namespace Myra.Graphics2D.UI
 		{
 			get
 			{
-				return _active;
+				return _active && !_forceInactive;
 			}
 
 			set
@@ -603,8 +604,30 @@ namespace Myra.Graphics2D.UI
 					return;
 				}
 
+				bool wasActive = Active;
 				_active = value;
-				OnActiveChanged();
+				if (wasActive != Active)
+				{
+					OnActiveChanged();
+				}
+			}
+		}
+
+		public bool ForceInactive
+		{
+			get => _forceInactive;
+			set
+			{
+				if (_forceInactive == value)
+				{
+					return;
+				}
+				bool wasActive = Active;
+				_forceInactive = value;
+				if (wasActive != Active)
+				{
+					OnActiveChanged();
+				}
 			}
 		}
 
