@@ -151,6 +151,11 @@ namespace Myra.Graphics2D
 			return a.Equals(b);
 		}
 
+		public static Thickness operator +(Thickness a, Thickness b)
+		{
+			return new Thickness(a.Left + b.Left, a.Top + b.Top, a.Right + b.Right, a.Bottom + b.Bottom);
+		}
+
 		public static bool operator !=(Thickness a, Thickness b)
 		{
 			return !(a == b);

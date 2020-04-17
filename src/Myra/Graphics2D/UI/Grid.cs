@@ -241,6 +241,8 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
+		public bool FlipY { get; set; }
+
 		public event EventHandler SelectedIndexChanged = null;
 		public event EventHandler HoverIndexChanged = null;
 
@@ -737,6 +739,14 @@ namespace Myra.Graphics2D.UI
 				_actualSize.Y += _rowHeights[i];
 			}
 
+			if (FlipY)
+			{
+				for (var i = 0; i < _rowHeights.Count; ++i)
+				{
+					_cellLocationsY[i] = _actualSize.Y - _cellLocationsY[i];
+				}
+			}
+
 			foreach (var control in _visibleWidgets)
 			{
 				LayoutControl(control);
@@ -1002,7 +1012,8 @@ namespace Myra.Graphics2D.UI
 				if (SelectedRowIndex != HoverRowIndex)
 				{
 					SelectedRowIndex = HoverRowIndex;
-				} else if (CanSelectNothing)
+				}
+				else if (CanSelectNothing)
 				{
 					SelectedRowIndex = null;
 				}
@@ -1013,7 +1024,8 @@ namespace Myra.Graphics2D.UI
 				if (SelectedColumnIndex != HoverColumnIndex)
 				{
 					SelectedColumnIndex = HoverColumnIndex;
-				} else if (CanSelectNothing)
+				}
+				else if (CanSelectNothing)
 				{
 					SelectedColumnIndex = null;
 				}
