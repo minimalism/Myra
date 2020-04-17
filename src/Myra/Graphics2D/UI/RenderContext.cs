@@ -105,7 +105,7 @@ namespace Myra.Graphics2D.UI
 			Batch.FillRectangle(rectangle, color * Opacity);
 		}
 
-		internal void Begin()
+		public void Begin()
 		{
 #if MONOGAME
 			Batch.Begin(SpriteBatchBeginParams.SpriteSortMode,
@@ -133,7 +133,7 @@ namespace Myra.Graphics2D.UI
 #endif
 		}
 
-		internal void End()
+		public void End()
 		{
 			Batch.End();
 		}

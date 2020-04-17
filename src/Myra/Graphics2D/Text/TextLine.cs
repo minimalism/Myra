@@ -33,19 +33,22 @@ namespace Myra.Graphics2D.Text
 			get; internal set;
 		}
 
-		public List<TextChunk> Chunks { get; } = new List<TextChunk>();
+		public List<ITextChunk> Chunks { get; } = new List<ITextChunk>();
 
 		public GlyphInfo GetGlyphInfoByIndex(int index)
 		{
-			foreach (var si in Chunks)
+			foreach (var c in Chunks)
 			{
-				if (index >= si.Count)
+				if (c is TextChunk si) 
 				{
-					index -= si.Count;
-				}
-				else
-				{
-					return si.GetGlyphInfoByIndex(index);
+					if (index >= si.Count) 
+					{
+						index -= si.Count;
+					}
+					else 
+					{
+						return si.GetGlyphInfoByIndex(index);
+					}
 				}
 			}
 
@@ -68,21 +71,25 @@ namespace Myra.Graphics2D.Text
 				{
 					x -= chunk.Size.X;
 				}
-				else
+				else if (chunk is TextChunk textChunk)
 				{
-					if (chunk.Glyphs.Count > 0 && x < chunk.Glyphs[0].Bounds.X)
+					if (textChunk.Glyphs.Count > 0 && x < textChunk.Glyphs[0].Bounds.X)
 					{
 						// Before first glyph
 						return 0;
 					}
 
-					return chunk.GetGlyphIndexByX(x);
+					return textChunk.GetGlyphIndexByX(x);
 				}
 			}
 
 			// Use last chunk
 			x = startX;
-			return Chunks[Chunks.Count - 1].GetGlyphIndexByX(startX);
+			if (Chunks[Chunks.Count - 1] is TextChunk tc) 
+			{
+				return tc.GetGlyphIndexByX(startX);
+			}
+			else return null;
 		}
 
 		public Color Draw(SpriteBatch batch, Point pos, Color color, bool useChunkColor, float opacity = 1.0f)

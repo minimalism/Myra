@@ -162,6 +162,9 @@ namespace Myra.Graphics2D.Text
 			}
 		}
 
+		private const char ColorCommandChar = 'c';
+		private const char SpriteCommandChar = 'i';
+
 		internal ChunkInfo LayoutRow(int startIndex, int? width, bool parseCommands)
 		{
 			var r = new ChunkInfo
@@ -185,7 +188,7 @@ namespace Myra.Graphics2D.Text
 
 				if (SupportsCommands && c == '\\')
 				{
-					if (i < _text.Length - 2 && _text[i + 1] == 'c' && _text[i + 2] == '[')
+					if (i < _text.Length - 2 && _text[i + 1] is char commandChar && _text[i + 2] == '[')
 					{
 						// Find end
 						var startPos = i + 3;
@@ -196,14 +199,34 @@ namespace Myra.Graphics2D.Text
 							// Found
 							if (i > r.StartIndex)
 							{
-								// Break right here, as next chunk has another color
-								r.LineEnd = false;
+								// Break right here, as next chunk is a command block
+								if (commandChar == SpriteCommandChar)
+								{
+									// sprites have width, will this one fit on our line?
+									r.LineEnd = (width != null && (r.X + UI.Desktop.InlineSpriteSize.X) > width.Value);
+								}
+								else
+								{
+									r.LineEnd = false;
+								}
 								return r;
 							}
 
-							if (parseCommands)
+							if (parseCommands && commandChar == ColorCommandChar)
 							{
 								r.Color = ColorStorage.FromName(_text.Substring(startPos, j - startPos));
+							}
+							else if (commandChar == SpriteCommandChar)
+							{
+								// Break because this is a sprite chunk
+								r.LineEnd = j == _text.Length - 1;
+								r.X = UI.Desktop.InlineSpriteSize.X;
+								r.Y = UI.Desktop.InlineSpriteSize.Y;
+								r.IsSprite = true;
+								r.CharsCount = j - r.StartIndex + 1;
+								lastBreakPosition = j;
+								lastBreakMeasure = UI.Desktop.InlineSpriteSize;
+								return r;
 							}
 
 							r.StartIndex = j + 1;
@@ -351,20 +374,32 @@ namespace Myra.Graphics2D.Text
 			while (i < _text.Length)
 			{
 				var c = LayoutRow(i, width, true);
-				if (i == c.StartIndex && c.CharsCount == 0) 
+				if (i == c.StartIndex && c.CharsCount == 0 && c.LineEnd)
 				{
-					if (line.TextStartIndex != c.StartIndex) 
+					if (line.TextStartIndex != c.StartIndex)
 					{
 						_lines.Add(line);
 					}
 					break;
 				}
 
-				var chunk = new TextChunk(_font, _text.Substring(c.StartIndex, c.CharsCount), new Point(c.X, c.Y), CalculateGlyphs)
+				ITextChunk chunk;
+				if (c.IsSprite)
 				{
-					TextStartIndex = i,
-					Color = c.Color
-				};
+					// trim off the \\i{} tag and pass in only the sprite id
+					chunk = new SpriteChunk(_text.Substring(c.StartIndex + 3, c.CharsCount - 4), new Point(c.X, c.Y))
+					{
+						Color = c.Color
+					};
+				}
+				else
+				{
+					chunk = new TextChunk(_font, _text.Substring(c.StartIndex, c.CharsCount), new Point(c.X, c.Y), CalculateGlyphs)
+					{
+						TextStartIndex = i,
+						Color = c.Color
+					};
+				}
 
 				width -= chunk.Size.X;
 
@@ -402,7 +437,7 @@ namespace Myra.Graphics2D.Text
 				line.LineIndex = i;
 				line.Top = _size.Y;
 
-				for(var j = 0; j < line.Chunks.Count; ++j)
+				for (var j = 0; j < line.Chunks.Count; ++j)
 				{
 					var chunk = line.Chunks[j];
 					chunk.LineIndex = line.LineIndex;
@@ -443,7 +478,7 @@ namespace Myra.Graphics2D.Text
 				return _lines[0];
 			}
 
-			for(var i = 0; i < _lines.Count; ++i)
+			for (var i = 0; i < _lines.Count; ++i)
 			{
 				var s = _lines[i];
 				if (s.TextStartIndex <= cursorPosition && cursorPosition < s.TextStartIndex + s.Count)
@@ -504,7 +539,8 @@ namespace Myra.Graphics2D.Text
 				if (y + line.Size.Y >= clip.Top && y <= clip.Bottom)
 				{
 					textColor = line.Draw(batch, new Point(position.X, y), textColor, useChunkColor, opacity);
-				} else
+				}
+				else
 				{
 					foreach (var chunk in line.Chunks)
 					{
