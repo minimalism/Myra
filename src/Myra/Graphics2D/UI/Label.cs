@@ -206,19 +206,17 @@ namespace Myra.Graphics2D.UI
 				return Point.Zero;
 			}
 			
-			var width = availableSize.X - Padding.Width - Margin.Width - BorderThickness.Width;
-			var height = availableSize.Y - Padding.Height - Margin.Height - BorderThickness.Height;
 			var ellipsisEnabled = _autoEllipsisMethod != AutoEllipsisMethod.None;
 
 			var result = Point.Zero;
 			if (ellipsisEnabled)
 			{
-				_autoEllipsisText = ApplyAutoEllipsis(width, height);
-				result = _autoEllipsisText.Measure(_wrap ? width : default(int?));
+				_autoEllipsisText = ApplyAutoEllipsis(availableSize.X, availableSize.Y);
+				result = _autoEllipsisText.Measure(_wrap ? availableSize.X : default(int?));
 			}
 			else if (Font != null)
 			{
-				result = _formattedText.Measure(_wrap ? width : default(int?));
+				result = _formattedText.Measure(_wrap ? availableSize.X : default(int?));
 			}
 
 			if (result.Y < CrossEngineStuff.LineSpacing(Font))
