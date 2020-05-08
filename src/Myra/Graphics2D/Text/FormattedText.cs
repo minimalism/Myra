@@ -330,10 +330,8 @@ namespace Myra.Graphics2D.Text
 					{
 						lineHeight = chunkInfo.Y;
 					}
-					if (i == chunkInfo.StartIndex && chunkInfo.CharsCount == 0)
+					if (i == chunkInfo.StartIndex && chunkInfo.CharsCount == 0 && remainingWidth == width)
 					{
-						y += lineHeight;
-						y += _verticalSpacing;
 						break;
 					}
 					lineWidth += chunkInfo.X;
@@ -398,16 +396,8 @@ namespace Myra.Graphics2D.Text
 			while (i < _text.Length)
 			{
 				var c = LayoutRow(i, width, true);
-				if (i == c.StartIndex && c.CharsCount == 0 && c.LineEnd)
+				if (i == c.StartIndex && c.CharsCount == 0 && c.LineEnd && line.TextStartIndex == c.StartIndex)
 				{
-					if (line.TextStartIndex != c.StartIndex)
-					{
-						_lines.Add(line);
-					}
-					if (c.Y > line.Size.Y)
-					{
-						line.Size.Y = c.Y;
-					}
 					break;
 				}
 

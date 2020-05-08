@@ -29,7 +29,7 @@ namespace Myra.Utility
 			}
 
 			// Real containers are solid only if backround is set
-			if (w.Background != null)
+			if (w.IsSolidAt(p))
 			{
 				return false;
 			}

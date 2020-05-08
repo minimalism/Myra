@@ -845,6 +845,8 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
+		public virtual bool IsSolidAt(in Point p) => Background != null;
+
 		public event EventHandler VisibleChanged;
 		public event EventHandler EnabledChanged;
 
