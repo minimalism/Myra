@@ -1,11 +1,12 @@
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.Xml.Serialization;
+using Myra.Utility;
 
-#if !XENKO
+#if !STRIDE
 using Microsoft.Xna.Framework;
 #else
-using Xenko.Core.Mathematics;
+using Stride.Core.Mathematics;
 #endif
 
 namespace Myra.Graphics2D.UI
@@ -136,105 +137,63 @@ namespace Myra.Graphics2D.UI
 		{
 			base.OnMouseEntered();
 
-			foreach (var w in ChildrenCopy)
-			{
-				if (!w.Visible)
-				{
-					continue;
-				}
-
-				w.HandleMouseMovement();
-			}
+			ChildrenCopy.ProcessMouseMovement();
 		}
 
 		public override void OnMouseLeft()
 		{
 			base.OnMouseLeft();
 
-			foreach (var w in ChildrenCopy)
-			{
-				if (!w.Visible)
-				{
-					continue;
-				}
-
-				w.HandleMouseMovement();
-			}
+			ChildrenCopy.ProcessMouseMovement();
 		}
 
 		public override void OnMouseMoved()
 		{
 			base.OnMouseMoved();
 
-			foreach (var w in ChildrenCopy)
-			{
-				w.HandleMouseMovement();
-			}
-		}
-
-		public override void OnTouchDoubleClick()
-		{
-			base.OnTouchDoubleClick();
-
-			foreach (var w in ChildrenCopy)
-			{
-				w.HandleTouchDoubleClick();
-			}
+			ChildrenCopy.ProcessMouseMovement();
 		}
 
 		public override void OnTouchEntered()
 		{
 			base.OnTouchEntered();
 
-			foreach (var w in ChildrenCopy)
-			{
-				w.HandleTouchMovement();
-			}
+			ChildrenCopy.ProcessTouchMovement();
 		}
 
 		public override void OnTouchLeft()
 		{
 			base.OnTouchLeft();
 
-			foreach (var w in ChildrenCopy)
-			{
-				if (!w.Visible)
-				{
-					continue;
-				}
-
-				w.OnTouchLeft();
-			}
+			ChildrenCopy.ProcessTouchMovement();
 		}
 
 		public override void OnTouchMoved()
 		{
 			base.OnTouchMoved();
 
-			foreach (var w in ChildrenCopy)
-			{
-				w.HandleTouchMovement();
-			}
+			ChildrenCopy.ProcessTouchMovement();
 		}
 
 		public override void OnTouchDown()
 		{
 			base.OnTouchDown();
 
-			foreach (var w in ChildrenCopy)
-			{
-				w.HandleTouchDown();
-			}
+			ChildrenCopy.ProcessTouchDown();
 		}
 
 		public override void OnTouchUp()
 		{
 			base.OnTouchUp();
 
-			foreach (var w in ChildrenCopy)
-			{
-				w.HandleTouchUp();
-			}
+			ChildrenCopy.ProcessTouchUp();
+		}
+
+		public override void OnTouchDoubleClick()
+		{
+			base.OnTouchDoubleClick();
+
+			ChildrenCopy.ProcessTouchDoubleClick();
 		}
 
 		public override void MoveChildren(Point delta)

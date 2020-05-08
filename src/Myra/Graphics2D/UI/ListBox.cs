@@ -4,11 +4,12 @@ using System.Xml.Serialization;
 using Myra.Graphics2D.UI.Styles;
 using Myra.Utility;
 
-#if !XENKO
+#if !STRIDE
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 #else
-using Xenko.Core.Mathematics;
+using Stride.Core.Mathematics;
+using Stride.Input;
 #endif
 
 namespace Myra.Graphics2D.UI
@@ -39,6 +40,8 @@ namespace Myra.Graphics2D.UI
 				base.SelectionMode = value;
 			}
 		}
+
+		protected internal override bool AcceptsMouseWheelFocus => InternalChild.AcceptsMouseWheelFocus;
 
 		internal protected override bool AcceptsKeyboardFocus
 		{
@@ -163,7 +166,6 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-#if !XENKO
 		public override void OnKeyDown(Keys k)
 		{
 			base.OnKeyDown(k);
@@ -189,13 +191,12 @@ namespace Myra.Graphics2D.UI
 					break;
 			}
 		}
-#endif
 
 		public override void OnTouchDown()
 		{
 			base.OnTouchDown();
 
-			if (_box.Bounds.Contains(Desktop.TouchPosition)) 
+			if (!InternalChild._verticalScrollingOn || !InternalChild._verticalScrollbarFrame.Contains(Desktop.TouchPosition))
 			{
 				ComboHideDropdown();
 			}
@@ -232,6 +233,13 @@ namespace Myra.Graphics2D.UI
 			}
 
 			InternalChild.ScrollPosition = sp;
+		}
+
+		public override void OnMouseWheel(float delta)
+		{
+			base.OnMouseWheel(delta);
+
+			InternalChild.OnMouseWheel(delta);
 		}
 
 		public void ApplyListBoxStyle(ListBoxStyle style)

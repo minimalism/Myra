@@ -6,14 +6,14 @@ using Myra.Utility;
 using System.Xml.Serialization;
 using Myra.Attributes;
 
-#if !XENKO
+#if !STRIDE
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 #else
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
-using Xenko.Input;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
+using Stride.Input;
 #endif
 
 namespace Myra.Graphics2D.UI
@@ -316,6 +316,25 @@ namespace Myra.Graphics2D.UI
 			_startPos = null;
 		}
 
+		private void UpdateActiveWindow()
+		{
+			var widgets = Desktop.ChildrenCopy;
+			var lastWidget = widgets[widgets.Count - 1];
+			if (lastWidget != this)
+			{
+				// Make active window top
+				var activeIndex = widgets.IndexOf(this);
+				var lastIndex = widgets.IndexOf(lastWidget);
+
+				for (var i = activeIndex; i < lastIndex; ++i)
+				{
+					widgets[i] = widgets[i + 1];
+				}
+
+				widgets[lastIndex] = this;
+			}
+		}
+
 		public override void OnTouchUp()
 		{
 			base.OnTouchUp();
@@ -325,6 +344,8 @@ namespace Myra.Graphics2D.UI
 
 		public override void OnTouchDown()
 		{
+			UpdateActiveWindow();
+
 			base.OnTouchDown();
 
 			var x = Bounds.X;

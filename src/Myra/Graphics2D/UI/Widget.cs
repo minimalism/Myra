@@ -7,12 +7,12 @@ using Myra.MML;
 using Myra.Graphics2D.UI.Properties;
 using Myra.Attributes;
 
-#if !XENKO
+#if !STRIDE
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 #else
-using Xenko.Core.Mathematics;
-using Xenko.Input;
+using Stride.Core.Mathematics;
+using Stride.Input;
 #endif
 
 namespace Myra.Graphics2D.UI
@@ -25,8 +25,6 @@ namespace Myra.Graphics2D.UI
 			LocationInvalid,
 			Invalid
 		}
-
-		#region PrivateData
 
 		private Thickness _margin, _borderThickness, _padding;
 		private int _left, _top;
@@ -55,9 +53,6 @@ namespace Myra.Graphics2D.UI
 
 		private bool _enabled;
 
-		#endregion
-
-		#region Data acsessor
 		/// <summary>
 		/// Internal use only. (MyraPad)
 		/// </summary>
@@ -650,9 +645,7 @@ namespace Myra.Graphics2D.UI
 				_opacity = value;
 			}
 		}
-		#endregion
 
-		#region Prop
 		/// <summary>
 		/// Dynamic layout expression
 		/// </summary>
@@ -733,6 +726,23 @@ namespace Myra.Graphics2D.UI
 				return _bounds - _margin;
 			}
 		}
+
+		internal bool ContainsMouse
+		{
+			get
+			{
+				return BorderBounds.Contains(Desktop.MousePosition);
+			}
+		}
+
+		internal bool ContainsTouch
+		{
+			get
+			{
+				return BorderBounds.Contains(Desktop.TouchPosition);
+			}
+		}
+
 
 		protected Rectangle BackgroundBounds
 		{
@@ -835,10 +845,6 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		#endregion
-
-		#region Events
-
 		public event EventHandler VisibleChanged;
 		public event EventHandler EnabledChanged;
 
@@ -863,16 +869,12 @@ namespace Myra.Graphics2D.UI
 		public event EventHandler<GenericEventArgs<Keys>> KeyDown;
 		public event EventHandler<GenericEventArgs<char>> Char;
 
-		#endregion
-
 		public Widget()
 		{
 			Visible = true;
 			ParentVisible = true;
 			Enabled = true;
 		}
-
-		#region Functions
 
 		public virtual IBrush GetCurrentBackground()
 		{
@@ -1049,6 +1051,9 @@ namespace Myra.Graphics2D.UI
 					availableSize.Y = MaxHeight.Value;
 				}
 
+				availableSize.X -= MBPWidth;
+				availableSize.Y -= MBPHeight;
+
 				// Do the actual measure
 				result = InternalMeasure(availableSize);
 
@@ -1198,8 +1203,6 @@ namespace Myra.Graphics2D.UI
 
 			_lastLocationHint = new Point(Left, Top);
 			_layoutState = LayoutState.Normal;
-
-			HandleMouseMovement();
 
 			LayoutUpdated.Invoke(this);
 		}
@@ -1498,96 +1501,14 @@ namespace Myra.Graphics2D.UI
 			SizeChanged.Invoke(this);
 		}
 
-		internal void HandleTouchDoubleClick()
+		public void SetKeyboardFocus()
 		{
-			if (!Visible || !Active)
-			{
-				return;
-			}
-
-			var isTouchOver = BorderBounds.Contains(Desktop.TouchPosition);
-			if (isTouchOver)
-			{
-				OnTouchDoubleClick();
-			}
+			Desktop.FocusedKeyboardWidget = this;
 		}
 
-		internal bool HandleMouseMovement()
+		public void SetMouseWheelFocus()
 		{
-			if (!Visible || !Active)
-			{
-				return false;
-			}
-
-			var isMouseOver = BorderBounds.Contains(Desktop.MousePosition);
-			var wasMouseOver = IsMouseInside;
-
-			if (isMouseOver && !wasMouseOver)
-			{
-				OnMouseEntered();
-			}
-
-			if (!isMouseOver && wasMouseOver)
-			{
-				OnMouseLeft();
-			}
-
-			if (isMouseOver && wasMouseOver)
-			{
-				OnMouseMoved();
-			}
-
-			return isMouseOver;
-		}
-
-		internal void HandleTouchDown()
-		{
-			if (!Visible || !Active)
-			{
-				return;
-			}
-
-			if (BorderBounds.Contains(Desktop.TouchPosition))
-			{
-				OnTouchDown();
-			}
-		}
-
-		internal void HandleTouchUp()
-		{
-			if (!Visible || !Active)
-			{
-				return;
-			}
-
-			if (IsTouchInside)
-			{
-				OnTouchUp();
-			}
-		}
-
-		internal bool HandleTouchMovement()
-		{
-			var isTouchOver = BorderBounds.Contains(Desktop.TouchPosition);
-			var wasTouchOver = IsTouchInside;
-
-			if (isTouchOver && !wasTouchOver)
-			{
-				OnTouchEntered();
-			}
-
-			if (!isTouchOver && wasTouchOver)
-			{
-				OnTouchLeft();
-			}
-
-			if (isTouchOver && wasTouchOver)
-			{
-				OnTouchMoved();
-			}
-
-			return isTouchOver;
+			Desktop.FocusedMouseWheelWidget = this;
 		}
 	}
-	#endregion
 }

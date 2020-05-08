@@ -6,15 +6,15 @@ using System.Linq;
 using Myra.Graphics2D.UI.Styles;
 using Myra.Utility;
 
-#if !XENKO
+#if !STRIDE
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Input.Touch;
 #else
-using Xenko.Core.Mathematics;
-using Xenko.Graphics;
-using Xenko.Input;
+using Stride.Core.Mathematics;
+using Stride.Graphics;
+using Stride.Input;
 #endif
 
 namespace Myra.Graphics2D.UI
@@ -51,7 +51,7 @@ namespace Myra.Graphics2D.UI
 		private static IReadOnlyCollection<Keys> _downKeys, _lastDownKeys;
 		private static Widget _previousKeyboardFocus;
 		private static Widget _previousMouseWheelFocus;
-#if !XENKO
+#if !STRIDE
 		private static TouchCollection _oldTouchState;
 #endif
 		private static Widget _scheduleMouseWheelFocus;
@@ -121,28 +121,7 @@ namespace Myra.Graphics2D.UI
 				_mousePosition = value;
 				MouseMoved.Invoke();
 
-				bool positionConsumed = false;
-				for (var i = ChildrenCopy.Count - 1; i >= 0; --i)
-				{
-					var w = ChildrenCopy[i];
-					if (!positionConsumed) 
-					{
-						if (w.Visible && w.Enabled) 
-						{
-							if (w.HandleMouseMovement() || w.IsModal) 
-							{
-								positionConsumed = true;
-							}
-						}
-					}
-					else 
-					{
-						if (w.IsMouseInside) 
-						{
-							w.OnMouseLeft();
-						}
-					}
-				}
+				ChildrenCopy.ProcessMouseMovement();
 
 				if (IsTouchDown)
 				{
@@ -168,17 +147,7 @@ namespace Myra.Graphics2D.UI
 				_touchPosition = value;
 				TouchMoved.Invoke();
 
-				for (var i = ChildrenCopy.Count - 1; i >= 0; --i)
-				{
-					var w = ChildrenCopy[i];
-					if (w.Visible && w.Enabled)
-					{
-						if (w.HandleTouchMovement() || w.IsModal)
-						{
-							break;
-						}
-					}
-				}
+				ChildrenCopy.ProcessTouchMovement();
 			}
 		}
 
@@ -329,7 +298,7 @@ namespace Myra.Graphics2D.UI
 		{
 			get
 			{
-#if !XENKO
+#if !STRIDE
 				return _downKeys.Contains(Keys.LeftControl) || _downKeys.Contains(Keys.RightControl);
 #else
 				return _downKeys.Contains(Keys.LeftCtrl) || _downKeys.Contains(Keys.RightCtrl);
@@ -341,7 +310,7 @@ namespace Myra.Graphics2D.UI
 		{
 			get
 			{
-#if !XENKO
+#if !STRIDE
 				return _downKeys.Contains(Keys.LeftAlt) || _downKeys.Contains(Keys.RightAlt);
 #else
 				return _downKeys.Contains(Keys.LeftAlt) || _downKeys.Contains(Keys.RightAlt);
@@ -449,7 +418,7 @@ namespace Myra.Graphics2D.UI
 #endif
 		}
 
-#if !XENKO
+#if !STRIDE
 		public static MouseInfo DefaultMouseInfoGetter()
 		{
 			var state = Mouse.GetState();
@@ -508,53 +477,13 @@ namespace Myra.Graphics2D.UI
 			{
 				TouchDoubleClick.Invoke();
 
-				var activeWidget = GetTopWidget(true);
-				if (activeWidget != null && activeWidget.Active)
-				{
-					activeWidget.HandleTouchDoubleClick();
-				}
+				ChildrenCopy.ProcessTouchDoubleClick();
 
 				_lastTouchDown = DateTime.MinValue;
 			}
 			else
 			{
 				_lastTouchDown = DateTime.Now;
-			}
-		}
-
-		private static void UpdateActiveWindow(Widget activeWidget)
-		{
-			var lastWidget = Widgets[Widgets.Count - 1];
-			if (activeWidget is Window && lastWidget != activeWidget)
-			{
-				// Make active window top
-				var activeIndex = Widgets.IndexOf(activeWidget);
-				var lastIndex = Widgets.IndexOf(lastWidget);
-
-				for (var i = activeIndex; i < lastIndex; ++i)
-				{
-					Widgets[i] = Widgets[i + 1];
-				}
-
-				Widgets[lastIndex] = activeWidget;
-			}
-		}
-
-		private static void UpdateIsTouchInside(bool isTouchInside)
-		{
-			// Only top active widget can receive touch
-			var activeWidget = GetTopWidget(true);
-			if (activeWidget != null && activeWidget.Active)
-			{
-				if (isTouchInside)
-				{
-					UpdateActiveWindow(activeWidget);
-					activeWidget.HandleTouchDown();
-				}
-				else
-				{
-					activeWidget.HandleTouchUp();
-				}
 			}
 		}
 
@@ -585,7 +514,8 @@ namespace Myra.Graphics2D.UI
 			_contextMenuShown = false;
 			_keyboardFocusSet = false;
 			_mouseWheelFocusSet = false;
-			UpdateIsTouchInside(true);
+
+			ChildrenCopy.ProcessTouchDown();
 
 			if (!_keyboardFocusSet && FocusedKeyboardWidget != null)
 			{
@@ -607,16 +537,11 @@ namespace Myra.Graphics2D.UI
 
 		private static void InputOnTouchUp()
 		{
-			UpdateIsTouchInside(false);
+			ChildrenCopy.ProcessTouchUp();
 		}
 
 		public static void ShowContextMenu(Widget menu, Point position)
 		{
-			if (menu == null)
-			{
-				throw new ArgumentNullException("menu");
-			}
-
 			HideContextMenu();
 
 			ContextMenu = menu;
@@ -835,6 +760,8 @@ namespace Myra.Graphics2D.UI
 
 			UpdateRecursiveLayout(ChildrenCopy);
 
+			ChildrenCopy.ProcessMouseMovement();
+
 			_layoutDirty = false;
 		}
 
@@ -855,17 +782,49 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		static public Widget GetWidget(Func<Widget, bool> Filter)
+		private static Widget GetWidgetBy(Widget root, Func<Widget, bool> filter)
 		{
-			Root root = new Root();
-			Widgets.ToList().ForEach(i => { root.Widgets.Add(i); });
-			return root.FindWidget(Filter);
+			if (filter(root))
+			{
+				return root;
+			}
+
+			var asContainer = root as Container;
+			if (asContainer == null)
+			{
+				return null;
+			}
+
+			for (var i = 0; i < asContainer.ChildrenCount; ++i)
+			{
+				var w = asContainer.GetChild(i);
+				var result = GetWidgetBy(w, filter);
+				if (result != null)
+				{
+					return result;
+				}
+			}
+
+			return null;
 		}
+
+		public static Widget GetWidgetBy(Func<Widget, bool> filter)
+		{
+			foreach (var w in ChildrenCopy)
+			{
+				var result = GetWidgetBy(w, filter);
+				if (result != null)
+				{
+					return result;
+				}
+			}
+
+			return null;
+		}
+
 		static public Widget GetWidgetByID(string ID)
 		{
-			Root root = new Root();
-			Widgets.ToList().ForEach(i => { root.Widgets.Add(i); });
-			return root.FindWidgetById(ID);
+			return GetWidgetBy(w => w.Id == ID);
 		}
 
 		public static int CalculateTotalWidgets(bool visibleOnly)
@@ -890,14 +849,12 @@ namespace Myra.Graphics2D.UI
 			return result;
 		}
 
-		private static Widget GetTopWidget(bool containsTouch)
+		private static Widget GetTopWidget()
 		{
 			for (var i = ChildrenCopy.Count - 1; i >= 0; --i)
 			{
 				var w = ChildrenCopy[i];
-				if (w.Visible && w.Enabled &&
-					(!containsTouch ||
-					(containsTouch && w.Bounds.Contains(TouchPosition))))
+				if (w.Visible && w.Enabled && w.Active)
 				{
 					return w;
 				}
@@ -920,7 +877,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-#if !XENKO
+#if !STRIDE
 		public static void UpdateTouch()
 		{
 			var touchState = TouchPanel.GetState();
@@ -987,7 +944,7 @@ namespace Myra.Graphics2D.UI
 			HandleButton(mouseInfo.IsLeftButtonDown, _lastMouseInfo.IsLeftButtonDown, MouseButtons.Left);
 			HandleButton(mouseInfo.IsMiddleButtonDown, _lastMouseInfo.IsMiddleButtonDown, MouseButtons.Middle);
 			HandleButton(mouseInfo.IsRightButtonDown, _lastMouseInfo.IsRightButtonDown, MouseButtons.Right);
-#if XENKO
+#if STRIDE
 				var handleWheel = mouseInfo.Wheel != 0;
 #else
 			var handleWheel = mouseInfo.Wheel != _lastMouseInfo.Wheel;
@@ -996,7 +953,7 @@ namespace Myra.Graphics2D.UI
 			if (handleWheel)
 			{
 				var delta = mouseInfo.Wheel;
-#if !XENKO
+#if !STRIDE
 				delta -= _lastMouseInfo.Wheel;
 #endif
 				MouseWheelChanged.Invoke(delta);
@@ -1067,7 +1024,7 @@ namespace Myra.Graphics2D.UI
 			UpdateMouseInput();
 			UpdateKeyboardInput();
 
-#if !XENKO
+#if !STRIDE
 			try
 			{
 				UpdateTouch();
@@ -1090,7 +1047,7 @@ namespace Myra.Graphics2D.UI
 			{
 				// Small workaround: if key is escape  active widget is window
 				// Send it there
-				var topWidget = GetTopWidget(false);
+				var topWidget = GetTopWidget();
 				var asWindow = topWidget as Window;
 				if (asWindow != null)
 				{
@@ -1111,7 +1068,7 @@ namespace Myra.Graphics2D.UI
 				{
 					_focusedKeyboardWidget.OnKeyDown(key);
 
-#if XENKO
+#if STRIDE
 					var ch = key.ToChar(_downKeys.Contains(Keys.LeftShift) ||
 										_downKeys.Contains(Keys.RightShift));
 					if (ch != null)
@@ -1175,39 +1132,13 @@ namespace Myra.Graphics2D.UI
 				return false;
 			}
 
-			// Non containers are completely solid
-			var asContainer = w as Container;
-			if (asContainer == null)
+			if (!w.FallsThrough(p))
 			{
 				return true;
 			}
 
-			// Not real containers are solid as well
-			if (!(w is Grid ||
-				w is StackPanel ||
-				w is Panel ||
-				w is SplitPane ||
-				w is ScrollViewer))
-			{
-				return true;
-			}
-
-			// Real containers are solid only if backround is set
-			if (w.Background != null)
-			{
-				return true;
-			}
-
-			var asScrollViewer = w as ScrollViewer;
-			if (asScrollViewer != null)
-			{
-				// Special case
-				if (asScrollViewer._horizontalScrollingOn && asScrollViewer._horizontalScrollbarFrame.Contains(p) ||
-					asScrollViewer._verticalScrollingOn && asScrollViewer._verticalScrollbarFrame.Contains(p))
-				{
-					return true;
-				}
-			}
+			// If widget fell through, then it is Container for sure
+			var asContainer = (Container)w;
 
 			// Or if any child is solid
 			foreach (var ch in asContainer.ChildrenCopy)
