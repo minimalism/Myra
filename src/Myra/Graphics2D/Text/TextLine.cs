@@ -100,8 +100,8 @@ namespace Myra.Graphics2D.Text
 				{
 					color = chunk.Color.Value;
 				}
-
-				chunk.Draw(batch, pos, color, opacity);
+				var chunkPos = new Point(pos.X, pos.Y + chunk.Top);
+				chunk.Draw(batch, chunkPos, color, opacity);
 				pos.X += chunk.Size.X;
 			}
 

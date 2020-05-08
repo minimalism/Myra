@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Myra.Utility;
+using Myra.Graphics2D.UI;
 
 #if !XENKO
 using Microsoft.Xna.Framework;
@@ -20,6 +21,7 @@ namespace Myra.Graphics2D.Text
 		private SpriteFont _font;
 		private string _text = string.Empty;
 		private int _verticalSpacing;
+		private VerticalAlignment _lineAlignment = VerticalAlignment.Center;
 		private int? _width;
 		private readonly List<TextLine> _lines = new List<TextLine>();
 		private bool _calculateGlyphs, _supportsCommands;
@@ -83,6 +85,19 @@ namespace Myra.Graphics2D.Text
 				_verticalSpacing = value;
 				InvalidateLayout();
 				InvalidateMeasures();
+			}
+		}
+
+		public VerticalAlignment LineVerticalAlignment
+		{
+			get
+			{
+				return _lineAlignment;
+			}
+			set
+			{
+				_lineAlignment = value;
+				InvalidateLayout();
 			}
 		}
 
@@ -307,12 +322,20 @@ namespace Myra.Graphics2D.Text
 
 				var remainingWidth = width;
 				var lineWidth = 0;
+				var lineHeight = 0;
 				while (i < _text.Length)
 				{
 					var chunkInfo = LayoutRow(i, remainingWidth, false);
+					if (lineHeight < chunkInfo.Y)
+					{
+						lineHeight = chunkInfo.Y;
+					}
 					if (i == chunkInfo.StartIndex && chunkInfo.CharsCount == 0)
+					{
+						y += lineHeight;
+						y += _verticalSpacing;
 						break;
-
+					}
 					lineWidth += chunkInfo.X;
 					i = chunkInfo.StartIndex + chunkInfo.CharsCount;
 
@@ -331,8 +354,9 @@ namespace Myra.Graphics2D.Text
 						lineWidth = 0;
 						remainingWidth = width;
 
-						y += chunkInfo.Y;
+						y += lineHeight;
 						y += _verticalSpacing;
+						lineHeight = 0;
 					}
 				}
 
@@ -379,6 +403,10 @@ namespace Myra.Graphics2D.Text
 					if (line.TextStartIndex != c.StartIndex)
 					{
 						_lines.Add(line);
+					}
+					if (c.Y > line.Size.Y)
+					{
+						line.Size.Y = c.Y;
 					}
 					break;
 				}
@@ -442,7 +470,18 @@ namespace Myra.Graphics2D.Text
 					var chunk = line.Chunks[j];
 					chunk.LineIndex = line.LineIndex;
 					chunk.ChunkIndex = j;
-					chunk.Top = line.Top;
+					if (LineVerticalAlignment == VerticalAlignment.Bottom)
+					{
+						chunk.Top = line.Top + line.Size.Y - chunk.Size.Y;
+					}
+					else if (LineVerticalAlignment == VerticalAlignment.Top)
+					{
+						chunk.Top = line.Top;
+					}
+					else
+					{
+						chunk.Top = line.Top + (line.Size.Y - chunk.Size.Y) / 2;
+					}
 				}
 
 				if (line.Size.X > _size.X)
@@ -538,7 +577,7 @@ namespace Myra.Graphics2D.Text
 			{
 				if (y + line.Size.Y >= clip.Top && y <= clip.Bottom)
 				{
-					textColor = line.Draw(batch, new Point(position.X, y), textColor, useChunkColor, opacity);
+					textColor = line.Draw(batch, position, textColor, useChunkColor, opacity);
 				}
 				else
 				{
