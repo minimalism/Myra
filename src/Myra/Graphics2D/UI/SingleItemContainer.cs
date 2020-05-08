@@ -79,6 +79,8 @@ namespace Myra.Graphics2D.UI
 
 			if (InternalChild != null)
 			{
+				availableSize.X -= (Padding.Left + Padding.Right);
+				availableSize.Y -= (Padding.Top + Padding.Bottom);
 				result = InternalChild.Measure(availableSize);
 			}
 
