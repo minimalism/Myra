@@ -13,7 +13,7 @@ namespace Myra.Utility
 	{
 		private static bool CommonTouchCheck(this Widget w)
 		{
-			return w.Visible && w.Active && w.Enabled && w.ContainsMouse;
+			return w.Visible && w.Active && w.ContainsMouse;
 		}
 
 		public static bool FallsThrough(this Widget w, Point p)
@@ -107,45 +107,39 @@ namespace Myra.Utility
 
 		public static void ProcessMouseMovement(this List<Widget> widgets)
 		{
-			// First run: call on OnMouseLeft on all widgets if it is required
+			bool mouseConsumed = false;
 			for (var i = widgets.Count - 1; i >= 0; --i)
 			{
 				var w = widgets[i];
-				if (!w.ContainsMouse && w.IsMouseInside)
+
+				var wasMouseOver = w.IsMouseInside;
+
+				if (!mouseConsumed)
+				{
+					if (w.CommonTouchCheck())
+					{
+						if (!wasMouseOver)
+						{
+							w.OnMouseEntered();
+						}
+						else
+						{
+							w.OnMouseMoved();
+						}
+						mouseConsumed = true;
+					}
+					else if (wasMouseOver)
+					{
+						w.OnMouseLeft();
+					}
+					if (w.IsModal)
+					{
+						mouseConsumed = true;
+					}
+				}
+				else if (wasMouseOver)
 				{
 					w.OnMouseLeft();
-				}
-			}
-
-			// Second run: OnMouseEnter/OnMouseMoved
-			for (var i = widgets.Count - 1; i >= 0; --i)
-			{
-				var w = widgets[i];
-
-				if (w.CommonTouchCheck())
-				{
-					var isMouseOver = w.ContainsMouse;
-					var wasMouseOver = w.IsMouseInside;
-
-					if (isMouseOver && !wasMouseOver)
-					{
-						w.OnMouseEntered();
-					}
-
-					if (isMouseOver && wasMouseOver)
-					{
-						w.OnMouseMoved();
-					}
-
-					if (!w.FallsThrough(Desktop.MousePosition))
-					{
-						break;
-					}
-				}
-
-				if (w.IsModal)
-				{
-					break;
 				}
 			}
 		}
