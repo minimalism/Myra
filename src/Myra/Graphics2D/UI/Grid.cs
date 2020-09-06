@@ -325,6 +325,7 @@ namespace Myra.Graphics2D.UI
 					((Proportion)i).Changed -= OnProportionsChanged;
 				}
 			}
+			else throw new NotImplementedException(args.Action.ToString());
 
 			HoverRowIndex = null;
 			SelectedRowIndex = null;

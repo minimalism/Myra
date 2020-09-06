@@ -138,6 +138,9 @@ namespace Myra.Graphics2D.UI
 					Reset();
 					break;
 				}
+
+				default:
+					throw new NotImplementedException(args.Action.ToString());
 			}
 
 			OnItemCollectionChanged();

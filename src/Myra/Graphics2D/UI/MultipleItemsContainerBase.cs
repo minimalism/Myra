@@ -1,4 +1,5 @@
 using Myra.Attributes;
+using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -77,6 +78,7 @@ namespace Myra.Graphics2D.UI
 					w.Parent = null;
 				}
 			}
+			else throw new NotImplementedException(args.Action.ToString());
 
 			InvalidateChildren();
 		}

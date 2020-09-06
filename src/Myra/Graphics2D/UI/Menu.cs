@@ -380,6 +380,7 @@ namespace Myra.Graphics2D.UI
 					RemoveItem(item);
 				}
 			}
+			else throw new NotImplementedException(args.Action.ToString());
 
 			_dirty = true;
 		}

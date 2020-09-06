@@ -92,24 +92,6 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public override bool Visible
-		{
-			get
-			{
-				return base.Visible;
-			}
-
-			set
-			{
-				base.Visible = value;
-
-				foreach (var child in ChildrenCopy)
-				{
-					child.ParentVisible = value;
-				}
-			}
-		}
-
 		internal override bool ParentVisible {
 			get
 			{

@@ -13,12 +13,12 @@ namespace Myra.Utility
 	{
 		private static bool CommonTouchCheck(this Widget w)
 		{
-			return w.Visible && w.Active && w.Enabled && w.ContainsTouch;
+			return w.Visible && w.Active && w.ContainsTouch;
 		}
 
         private static bool CommonMouseCheck(this Widget w)
         {
-            return w.Visible && w.Active && w.Enabled && w.ContainsMouse;
+            return w.Visible && w.Active && w.ContainsMouse;
         }
 
         public static bool FallsThrough(this Widget w, Point p)
@@ -114,12 +114,20 @@ namespace Myra.Utility
 
 		public static void ProcessMouseMovement(this List<Widget> widgets)
 		{
-			bool mouseConsumed = false;
+			// First run: call on OnMouseLeft on all widgets if it is required
 			for (var i = widgets.Count - 1; i >= 0; --i)
 			{
 				var w = widgets[i];
+				if (!w.ContainsMouse && w.IsMouseInside)
+				{
+					w.OnMouseLeft();
+				}
+			}
 
-				var wasMouseOver = w.IsMouseInside;
+			// Second run: OnMouseEnter/OnMouseMoved
+			for (var i = widgets.Count - 1; i >= 0; --i)
+			{
+				var w = widgets[i];
 
 				if (w.CommonMouseCheck())
 				{
@@ -138,12 +146,13 @@ namespace Myra.Utility
 
 					if (w.Desktop != null && !w.FallsThrough(w.Desktop.MousePosition))
 					{
-						mouseConsumed = true;
+						break;
 					}
 				}
-				else if (wasMouseOver)
+
+				if (w.IsModal)
 				{
-					w.OnMouseLeft();
+					break;
 				}
 			}
 		}

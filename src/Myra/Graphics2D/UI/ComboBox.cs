@@ -177,6 +177,9 @@ namespace Myra.Graphics2D.UI
 					UpdateSelectedItem();
 					break;
 				}
+
+				default:
+					throw new NotImplementedException(args.Action.ToString());
 			}
 
 			InvalidateMeasure();

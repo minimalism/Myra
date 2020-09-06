@@ -634,6 +634,7 @@ namespace Myra.Graphics2D.UI
 					w.Desktop = null;
 				}
 			}
+			else throw new NotImplementedException(args.Action.ToString());
 
 			InvalidateLayout();
 			_widgetsDirty = true;

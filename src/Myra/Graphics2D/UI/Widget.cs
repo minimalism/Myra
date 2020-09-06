@@ -614,7 +614,7 @@ namespace Myra.Graphics2D.UI
 				return _desktop;
 			}
 
-			internal set
+			set
 			{
 				_desktop = value;
 				IsMouseInside = false;
