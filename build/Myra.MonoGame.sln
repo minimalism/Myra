@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.29709.97
+VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{EAB0AA24-7185-4897-A866-AE87AF3F2E0B}"
 EndProject
@@ -16,8 +16,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MyraPad", "..\src\MyraPad\MyraPad.csproj", "{78E5B206-FC8A-42A3-A0DB-FB82D12183B6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{869736F8-E5A4-4A51-BC70-0433C6ACE5D4}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Myra.TextureAtlasConverter", "..\src\Myra.TextureAtlasConverter\Myra.TextureAtlasConverter.csproj", "{77935B44-15AE-4A3E-8D2B-79CC947648A7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Myra.Samples.CustomWidgets", "..\samples\Myra.Samples.CustomWidgets\Myra.Samples.CustomWidgets.csproj", "{9E05B57F-EB02-420F-9CD5-7BA0CB14D99C}"
 EndProject
@@ -34,6 +32,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Myra.Samples.AllWidgets.MonoGame", "..\samples\Myra.Samples.AllWidgets\Myra.Samples.AllWidgets.MonoGame.csproj", "{86685C49-7408-4E47-9B34-AC93812CB3EC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Myra.Samples.ObjectEditor", "..\samples\Myra.Samples.ObjectEditor\Myra.Samples.ObjectEditor.csproj", "{7A6283C5-C2CF-4CE0-877A-B8A95D391007}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Myra.Tests.MonoGame", "..\src\Myra.Tests\Myra.Tests.MonoGame.csproj", "{E0A97939-4F2B-4415-9466-5BD1AA16CF1C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6CBB7D3C-5DB6-4120-AF5E-AD47F8E73CFF}"
 	ProjectSection(SolutionItems) = preProject
@@ -66,10 +66,6 @@ Global
 		{78E5B206-FC8A-42A3-A0DB-FB82D12183B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{78E5B206-FC8A-42A3-A0DB-FB82D12183B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{78E5B206-FC8A-42A3-A0DB-FB82D12183B6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{77935B44-15AE-4A3E-8D2B-79CC947648A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{77935B44-15AE-4A3E-8D2B-79CC947648A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{77935B44-15AE-4A3E-8D2B-79CC947648A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{77935B44-15AE-4A3E-8D2B-79CC947648A7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9E05B57F-EB02-420F-9CD5-7BA0CB14D99C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9E05B57F-EB02-420F-9CD5-7BA0CB14D99C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E05B57F-EB02-420F-9CD5-7BA0CB14D99C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -102,6 +98,10 @@ Global
 		{7A6283C5-C2CF-4CE0-877A-B8A95D391007}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7A6283C5-C2CF-4CE0-877A-B8A95D391007}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7A6283C5-C2CF-4CE0-877A-B8A95D391007}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0A97939-4F2B-4415-9466-5BD1AA16CF1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0A97939-4F2B-4415-9466-5BD1AA16CF1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0A97939-4F2B-4415-9466-5BD1AA16CF1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0A97939-4F2B-4415-9466-5BD1AA16CF1C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -112,7 +112,6 @@ Global
 		{15129613-1D63-4709-8B71-70E73BAB9C0B} = {EAB0AA24-7185-4897-A866-AE87AF3F2E0B}
 		{C98D1921-8281-4FA4-B451-E648B59C23B5} = {EAB0AA24-7185-4897-A866-AE87AF3F2E0B}
 		{78E5B206-FC8A-42A3-A0DB-FB82D12183B6} = {869736F8-E5A4-4A51-BC70-0433C6ACE5D4}
-		{77935B44-15AE-4A3E-8D2B-79CC947648A7} = {869736F8-E5A4-4A51-BC70-0433C6ACE5D4}
 		{9E05B57F-EB02-420F-9CD5-7BA0CB14D99C} = {EAB0AA24-7185-4897-A866-AE87AF3F2E0B}
 		{4DA7A6EB-1A4F-4966-A534-2C52F01E4411} = {EAB0AA24-7185-4897-A866-AE87AF3F2E0B}
 		{CA9509A6-31B2-44F4-A13D-01A794ABDD74} = {EAB0AA24-7185-4897-A866-AE87AF3F2E0B}

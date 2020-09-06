@@ -28,46 +28,40 @@ namespace Myra.Graphics2D.UI
 		public float Wheel;
 	}
 
-	public static class Desktop
+	public class Desktop
 	{
 		public const int DoubleClickIntervalInMs = 500;
 
-		public static Func<Rectangle> DefaultBoundsFetcher = () =>
-		{
-			var size = MyraEnvironment.GraphicsDevice.ViewSize();
-			return new Rectangle(0, 0, size.X, size.Y);
-		};
+		private RenderContext _renderContext;
 
-		private static RenderContext _renderContext;
-
-		private static bool _layoutDirty = true;
-		private static bool _widgetsDirty = true;
-		private static Widget _focusedKeyboardWidget, _focusedMouseWheelWidget;
-		private static readonly List<Widget> _widgetsCopy = new List<Widget>();
-		private static DateTime _lastTouchDown;
-		private static DateTime? _lastKeyDown;
-		private static int _keyDownCount = 0;
-		private static MouseInfo _lastMouseInfo;
-		private static IReadOnlyCollection<Keys> _downKeys, _lastDownKeys;
-		private static Widget _previousKeyboardFocus;
-		private static Widget _previousMouseWheelFocus;
+		private bool _layoutDirty = true;
+		private bool _widgetsDirty = true;
+		private Widget _focusedKeyboardWidget, _focusedMouseWheelWidget;
+		private readonly List<Widget> _widgetsCopy = new List<Widget>();
+		private DateTime _lastTouchDown;
+		private DateTime? _lastKeyDown;
+		private int _keyDownCount = 0;
+		private MouseInfo _lastMouseInfo;
+		private IReadOnlyCollection<Keys> _downKeys, _lastDownKeys;
+		private Widget _previousKeyboardFocus;
+		private Widget _previousMouseWheelFocus;
 #if !STRIDE
-		private static TouchCollection _oldTouchState;
+		private TouchCollection _oldTouchState;
 #endif
-		private static Widget _scheduleMouseWheelFocus;
-		private static bool _isTouchDown;
-		private static Point _mousePosition, _touchPosition;
-		private static bool _contextMenuShown = false;
-		private static bool _keyboardFocusSet = false;
-		private static bool _mouseWheelFocusSet = false;
+		private Widget _scheduleMouseWheelFocus;
+		private bool _isTouchDown;
+		private Point _previousMousePosition, _mousePosition, _touchPosition;
+		private bool _contextMenuShown = false;
+		private bool _keyboardFocusSet = false;
+		private bool _mouseWheelFocusSet = false;
 #if MONOGAME
-		public static bool HasExternalTextInput = false;
+		public bool HasExternalTextInput = false;
 #endif
 
 		/// <summary>
 		/// Root Widget
 		/// </summary>
-		public static Widget Root
+		public Widget Root
 		{
 			get
 			{
@@ -96,7 +90,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public static IReadOnlyCollection<Keys> DownKeys
+		public IReadOnlyCollection<Keys> DownKeys
 		{
 			get
 			{
@@ -104,7 +98,15 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public static Point MousePosition
+		public Point PreviousMousePosition
+		{
+			get
+			{
+				return _previousMousePosition;
+			}
+		}
+
+		public Point MousePosition
 		{
 			get
 			{
@@ -118,6 +120,7 @@ namespace Myra.Graphics2D.UI
 					return;
 				}
 
+				_previousMousePosition = _mousePosition;
 				_mousePosition = value;
 				MouseMoved.Invoke();
 
@@ -130,7 +133,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public static Point TouchPosition
+		public Point TouchPosition
 		{
 			get
 			{
@@ -151,19 +154,19 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public static HorizontalMenu MenuBar { get; set; }
+		public HorizontalMenu MenuBar { get; set; }
 
-		public static Func<MouseInfo> MouseInfoGetter
+		public Func<MouseInfo> MouseInfoGetter
 		{
 			get; set;
 		}
 
-		public static Func<IReadOnlyCollection<Keys>> DownKeysGetter
+		public Func<IReadOnlyCollection<Keys>> DownKeysGetter
 		{
 			get; set;
 		}
 
-		internal static List<Widget> ChildrenCopy
+		internal List<Widget> ChildrenCopy
 		{
 			get
 			{
@@ -172,15 +175,15 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public static ObservableCollection<Widget> Widgets { get; } = new ObservableCollection<Widget>();
+		public ObservableCollection<Widget> Widgets { get; } = new ObservableCollection<Widget>();
 
-		public static Func<Rectangle> BoundsFetcher = DefaultBoundsFetcher;
+		public Func<Rectangle> BoundsFetcher = DefaultBoundsFetcher;
 
-		internal static Rectangle InternalBounds { get; private set; }
+		internal Rectangle InternalBounds { get; private set; }
 
-		public static Widget ContextMenu { get; private set; }
+		public Widget ContextMenu { get; private set; }
 
-		public static Widget FocusedKeyboardWidget
+		public Widget FocusedKeyboardWidget
 		{
 			get { return _focusedKeyboardWidget; }
 
@@ -224,7 +227,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public static Widget FocusedMouseWheelWidget
+		public Widget FocusedMouseWheelWidget
 		{
 			get
 			{
@@ -242,7 +245,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		private static RenderContext RenderContext
+		private RenderContext RenderContext
 		{
 			get
 			{
@@ -255,7 +258,7 @@ namespace Myra.Graphics2D.UI
 		/// <summary>
 		/// Parameters passed to SpriteBatch.Begin
 		/// </summary>
-		public static SpriteBatchBeginParams SpriteBatchBeginParams
+		public SpriteBatchBeginParams SpriteBatchBeginParams
 		{
 			get
 			{
@@ -268,9 +271,9 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public static float Opacity { get; set; }
+		public float Opacity { get; set; }
 
-		public static bool IsMouseOverGUI
+		public bool IsMouseOverGUI
 		{
 			get
 			{
@@ -278,7 +281,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public static bool IsTouchOverGUI
+		public bool IsTouchOverGUI
 		{
 			get
 			{
@@ -286,7 +289,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		internal static bool IsShiftDown
+		internal bool IsShiftDown
 		{
 			get
 			{
@@ -294,7 +297,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		internal static bool IsControlDown
+		internal bool IsControlDown
 		{
 			get
 			{
@@ -306,7 +309,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		internal static bool IsAltDown
+		internal bool IsAltDown
 		{
 			get
 			{
@@ -318,7 +321,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public static bool IsTouchDown
+		public bool IsTouchDown
 		{
 			get
 			{
@@ -347,11 +350,11 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public static int RepeatKeyDownStartInMs { get; set; } = 500;
+		public int RepeatKeyDownStartInMs { get; set; } = 500;
 
-		public static int RepeatKeyDownInternalInMs { get; set; } = 50;
+		public int RepeatKeyDownInternalInMs { get; set; } = 50;
 
-		public static bool HasModalWidget
+		public bool HasModalWidget
 		{
 			get
 			{
@@ -368,7 +371,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		private static bool IsMenuBarActive
+		private bool IsMenuBarActive
 		{
 			get
 			{
@@ -376,31 +379,30 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
+		public Action<Keys> KeyDownHandler;
 		public static Point InlineSpriteSize = new Point(24, 24);
 		public static Func<string, IImage> SpriteFunc = null;
 
-        public static Action<Keys> KeyDownHandler;
+		public event EventHandler MouseMoved;
 
-		public static event EventHandler MouseMoved;
+		public event EventHandler TouchMoved;
+		public event EventHandler TouchDown;
+		public event EventHandler TouchUp;
+		public event EventHandler TouchDoubleClick;
 
-		public static event EventHandler TouchMoved;
-		public static event EventHandler TouchDown;
-		public static event EventHandler TouchUp;
-		public static event EventHandler TouchDoubleClick;
+		public event EventHandler<GenericEventArgs<float>> MouseWheelChanged;
 
-		public static event EventHandler<GenericEventArgs<float>> MouseWheelChanged;
+		public event EventHandler<GenericEventArgs<Keys>> KeyUp;
+		public event EventHandler<GenericEventArgs<Keys>> KeyDown;
+		public event EventHandler<GenericEventArgs<char>> Char;
 
-		public static event EventHandler<GenericEventArgs<Keys>> KeyUp;
-		public static event EventHandler<GenericEventArgs<Keys>> KeyDown;
-		public static event EventHandler<GenericEventArgs<char>> Char;
+		public event EventHandler<CancellableEventArgs<Widget>> ContextMenuClosing;
+		public event EventHandler<GenericEventArgs<Widget>> ContextMenuClosed;
 
-		public static event EventHandler<CancellableEventArgs<Widget>> ContextMenuClosing;
-		public static event EventHandler<GenericEventArgs<Widget>> ContextMenuClosed;
+		public event EventHandler<CancellableEventArgs<Widget>> WidgetLosingKeyboardFocus;
+		public event EventHandler<GenericEventArgs<Widget>> WidgetGotKeyboardFocus;
 
-		public static event EventHandler<CancellableEventArgs<Widget>> WidgetLosingKeyboardFocus;
-		public static event EventHandler<GenericEventArgs<Widget>> WidgetGotKeyboardFocus;
-
-		static Desktop()
+		public Desktop()
 		{
 			Opacity = 1.0f;
 			Widgets.CollectionChanged += WidgetsOnCollectionChanged;
@@ -419,7 +421,7 @@ namespace Myra.Graphics2D.UI
 		}
 
 #if !STRIDE
-		public static MouseInfo DefaultMouseInfoGetter()
+		public MouseInfo DefaultMouseInfoGetter()
 		{
 			var state = Mouse.GetState();
 
@@ -435,12 +437,12 @@ namespace Myra.Graphics2D.UI
 			return result;
 		}
 
-		public static IReadOnlyCollection<Keys> DefaultDownKeysGetter()
+		public IReadOnlyCollection<Keys> DefaultDownKeysGetter()
 		{
 			return Keyboard.GetState().GetPressedKeys();
 		}
 #else
-		public static MouseInfo DefaultMouseInfoGetter()
+		public MouseInfo DefaultMouseInfoGetter()
 		{
 			var input = MyraEnvironment.Game.Input;
 
@@ -458,7 +460,7 @@ namespace Myra.Graphics2D.UI
 			return result;
 		}
 
-		public static IReadOnlyCollection<Keys> DefaultDownKeysGetter()
+		public IReadOnlyCollection<Keys> DefaultDownKeysGetter()
 		{
 			var input = MyraEnvironment.Game.Input;
 
@@ -466,12 +468,12 @@ namespace Myra.Graphics2D.UI
 		}
 #endif
 
-		public static Widget GetChild(int index)
+		public Widget GetChild(int index)
 		{
 			return ChildrenCopy[index];
 		}
 
-		private static void HandleDoubleClick()
+		private void HandleDoubleClick()
 		{
 			if ((DateTime.Now - _lastTouchDown).TotalMilliseconds < DoubleClickIntervalInMs)
 			{
@@ -487,7 +489,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		private static void ContextMenuOnTouchDown()
+		private void ContextMenuOnTouchDown()
 		{
 			if (ContextMenu == null || ContextMenu.Bounds.Contains(TouchPosition))
 			{
@@ -509,7 +511,7 @@ namespace Myra.Graphics2D.UI
 			HideContextMenu();
 		}
 
-		private static void InputOnTouchDown()
+		private void InputOnTouchDown()
 		{
 			_contextMenuShown = false;
 			_keyboardFocusSet = false;
@@ -535,12 +537,12 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		private static void InputOnTouchUp()
+		private void InputOnTouchUp()
 		{
 			ChildrenCopy.ProcessTouchUp();
 		}
 
-		public static void ShowContextMenu(Widget menu, Point position)
+		public void ShowContextMenu(Widget menu, Point position)
 		{
 			HideContextMenu();
 
@@ -583,7 +585,7 @@ namespace Myra.Graphics2D.UI
 			_contextMenuShown = true;
 		}
 
-		public static void HideContextMenu()
+		public void HideContextMenu()
 		{
 			if (ContextMenu == null)
 			{
@@ -609,27 +611,27 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		private static void WidgetsOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
+		private void WidgetsOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
 		{
 			if (args.Action == NotifyCollectionChangedAction.Add)
 			{
 				foreach (Widget w in args.NewItems)
 				{
-					w.IsPlaced = true;
+					w.Desktop = this;
 				}
 			}
 			else if (args.Action == NotifyCollectionChangedAction.Remove)
 			{
 				foreach (Widget w in args.OldItems)
 				{
-					w.IsPlaced = false;
+					w.Desktop = null;
 				}
 			}
 			else if (args.Action == NotifyCollectionChangedAction.Reset)
 			{
 				foreach (Widget w in ChildrenCopy)
 				{
-					w.IsPlaced = false;
+					w.Desktop = null;
 				}
 			}
 
@@ -637,7 +639,7 @@ namespace Myra.Graphics2D.UI
 			_widgetsDirty = true;
 		}
 
-		private static void EnsureRenderContext()
+		private void EnsureRenderContext()
 		{
 			if (_renderContext == null)
 			{
@@ -646,10 +648,15 @@ namespace Myra.Graphics2D.UI
 				{
 					Batch = spriteBatch
 				};
+
+				if(MyraEnvironment.LayoutScale.HasValue)
+                {
+					_renderContext.SpriteBatchBeginParams.TransformMatrix = Matrix.CreateScale(MyraEnvironment.LayoutScale.Value);
+				}
 			}
 		}
 
-		public static void RenderVisual()
+		public void RenderVisual()
 		{
 			EnsureRenderContext();
 
@@ -680,19 +687,19 @@ namespace Myra.Graphics2D.UI
 			CrossEngineStuff.SetScissor(oldScissorRectangle);
 		}
 
-		public static void Render()
+		public void Render()
 		{
 			UpdateInput();
 			UpdateLayout();
 			RenderVisual();
 		}
 
-		static public void InvalidateLayout()
+		public void InvalidateLayout()
 		{
 			_layoutDirty = true;
 		}
 
-		public static void UpdateLayout()
+		public void UpdateLayout()
 		{
 			var newBounds = BoundsFetcher();
 			if (InternalBounds != newBounds)
@@ -731,7 +738,7 @@ namespace Myra.Graphics2D.UI
 					continue;
 				}
 
-				UIUtils.ProcessWidgets(w, widget =>
+				w.ProcessWidgets(widget =>
 				{
 					widget.Active = active;
 
@@ -760,12 +767,27 @@ namespace Myra.Graphics2D.UI
 
 			UpdateRecursiveLayout(ChildrenCopy);
 
+			// Fire Mouse Movement without actual mouse movement in order to update Widget.IsMouseInside
+			_previousMousePosition = _mousePosition;
 			ChildrenCopy.ProcessMouseMovement();
 
 			_layoutDirty = false;
 		}
 
-		static private void UpdateRecursiveLayout(IEnumerable<Widget> widgets)
+		internal void ProcessWidgets(Func<Widget, bool> operation)
+		{
+			for (var i = ChildrenCopy.Count - 1; i >= 0; --i)
+			{
+				var w = ChildrenCopy[i];
+				var result = w.ProcessWidgets(operation);
+				if (!result)
+				{
+					return;
+				}
+			}
+		}
+
+		private void UpdateRecursiveLayout(IEnumerable<Widget> widgets)
 		{
 			foreach (var i in widgets)
 			{
@@ -782,7 +804,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		private static Widget GetWidgetBy(Widget root, Func<Widget, bool> filter)
+		private Widget GetWidgetBy(Widget root, Func<Widget, bool> filter)
 		{
 			if (filter(root))
 			{
@@ -808,7 +830,7 @@ namespace Myra.Graphics2D.UI
 			return null;
 		}
 
-		public static Widget GetWidgetBy(Func<Widget, bool> filter)
+		public Widget GetWidgetBy(Func<Widget, bool> filter)
 		{
 			foreach (var w in ChildrenCopy)
 			{
@@ -822,12 +844,12 @@ namespace Myra.Graphics2D.UI
 			return null;
 		}
 
-		static public Widget GetWidgetByID(string ID)
+		public Widget GetWidgetByID(string ID)
 		{
 			return GetWidgetBy(w => w.Id == ID);
 		}
 
-		public static int CalculateTotalWidgets(bool visibleOnly)
+		public int CalculateTotalWidgets(bool visibleOnly)
 		{
 			var result = 0;
 			foreach (var w in Widgets)
@@ -849,7 +871,7 @@ namespace Myra.Graphics2D.UI
 			return result;
 		}
 
-		private static Widget GetTopWidget()
+		private Widget GetTopWidget()
 		{
 			for (var i = ChildrenCopy.Count - 1; i >= 0; --i)
 			{
@@ -863,7 +885,7 @@ namespace Myra.Graphics2D.UI
 			return null;
 		}
 
-		public static void HandleButton(bool isDown, bool wasDown, MouseButtons buttons)
+		public void HandleButton(bool isDown, bool wasDown, MouseButtons buttons)
 		{
 			if (isDown && !wasDown)
 			{
@@ -878,7 +900,7 @@ namespace Myra.Graphics2D.UI
 		}
 
 #if !STRIDE
-		public static void UpdateTouch()
+		public void UpdateTouch()
 		{
 			var touchState = TouchPanel.GetState();
 			if (!touchState.IsConnected)
@@ -889,6 +911,17 @@ namespace Myra.Graphics2D.UI
 			if (touchState.Count > 0)
 			{
 				var pos = touchState[0].Position;
+
+				if (SpriteBatchBeginParams.TransformMatrix != null)
+				{
+					// Apply transform
+					var t = Vector2.Transform(
+						new Vector2(pos.X, pos.Y),
+						SpriteBatchBeginParams.InverseTransform);
+
+					pos = new Vector2((int)t.X, (int)t.Y);
+				}
+
 				TouchPosition = new Point((int)pos.X, (int)pos.Y);
 			}
 
@@ -908,7 +941,7 @@ namespace Myra.Graphics2D.UI
 		}
 #endif
 
-		public static void UpdateMouseInput()
+		public void UpdateMouseInput()
 		{
 			if (_scheduleMouseWheelFocus != null)
 			{
@@ -967,7 +1000,7 @@ namespace Myra.Graphics2D.UI
 			_lastMouseInfo = mouseInfo;
 		}
 
-		public static void UpdateKeyboardInput()
+		public void UpdateKeyboardInput()
 		{
 			if (DownKeysGetter == null)
 			{
@@ -983,6 +1016,11 @@ namespace Myra.Graphics2D.UI
 				{
 					if (!_lastDownKeys.Contains(key))
 					{
+						if (key == Keys.Tab)
+						{
+							FocusNextWidget();
+						}
+
 						KeyDownHandler?.Invoke(key);
 
 						_lastKeyDown = now;
@@ -1019,7 +1057,63 @@ namespace Myra.Graphics2D.UI
 			_lastDownKeys = _downKeys.ToArray();
 		}
 
-		public static void UpdateInput()
+		private void FocusNextWidget()
+		{
+			if (Widgets.Count == 0) return;
+
+			var isNull = FocusedKeyboardWidget == null;
+			var focusChanged = false;
+			ProcessWidgets(w =>
+			{
+				if (isNull)
+				{
+					if (CanFocusWidget(w))
+					{
+						w.SetKeyboardFocus();
+						if (w.AcceptsMouseWheelFocus)
+						{
+							w.SetMouseWheelFocus();
+						}
+						focusChanged = true;
+						return false;
+					}
+				}
+				else
+				{
+					if (w == FocusedKeyboardWidget)
+					{
+						isNull = true;
+						// Next widget will be focused
+					}
+				}
+
+				return true;
+			});
+
+			if (focusChanged || FocusedKeyboardWidget == null)
+			{
+				// Either new focus had been set or there are no focusable widgets
+				return;
+			}
+
+			// Next run - try to focus first widget before focused one
+			ProcessWidgets(w =>
+			{
+				if (CanFocusWidget(w))
+				{
+					w.SetKeyboardFocus();
+					return false;
+				}
+
+				return true;
+			});
+		}
+
+		private static bool CanFocusWidget(Widget widget) =>
+			widget != null && widget.Visible && widget.Active &&
+			widget.Enabled && widget.AcceptsKeyboardFocus;
+
+		public void UpdateInput()
 		{
 			UpdateMouseInput();
 			UpdateKeyboardInput();
@@ -1035,7 +1129,7 @@ namespace Myra.Graphics2D.UI
 #endif
 		}
 
-		public static void OnKeyDown(Keys key)
+		public void OnKeyDown(Keys key)
 		{
 			KeyDown.Invoke(key);
 
@@ -1051,13 +1145,13 @@ namespace Myra.Graphics2D.UI
 				var asWindow = topWidget as Window;
 				if (asWindow != null)
 				{
-					if (key == Keys.Escape)
+					if (key == asWindow.CloseKey)
 					{
 						asWindow.OnKeyDown(key);
 					}
 
 					var asDialog = asWindow as Dialog;
-					if (asDialog != null && key == Keys.Enter)
+					if (asDialog != null && key == asDialog.ConfirmKey)
 					{
 						// Dialog also always receives Enter (Ok)
 						asWindow.OnKeyDown(key);
@@ -1096,7 +1190,7 @@ namespace Myra.Graphics2D.UI
 #endif
 		}
 
-		public static void OnChar(char c)
+		public void OnChar(char c)
 		{
 			if (IsMenuBarActive)
 			{
@@ -1112,7 +1206,7 @@ namespace Myra.Graphics2D.UI
 			Char.Invoke(c);
 		}
 
-		private static void UpdateWidgetsCopy()
+		private void UpdateWidgetsCopy()
 		{
 			if (!_widgetsDirty)
 			{
@@ -1125,7 +1219,7 @@ namespace Myra.Graphics2D.UI
 			_widgetsDirty = false;
 		}
 
-		private static bool InternalIsPointOverGUI(Point p, Widget w)
+		private bool InternalIsPointOverGUI(Point p, Widget w)
 		{
 			if (!w.Visible || !w.BorderBounds.Contains(p))
 			{
@@ -1152,7 +1246,7 @@ namespace Myra.Graphics2D.UI
 			return false;
 		}
 
-		public static bool IsPointOverGUI(Point p)
+		public bool IsPointOverGUI(Point p)
 		{
 			foreach (var widget in ChildrenCopy)
 			{
@@ -1163,6 +1257,12 @@ namespace Myra.Graphics2D.UI
 			}
 
 			return false;
+		}
+
+		public static Rectangle DefaultBoundsFetcher()
+		{
+			var size = MyraEnvironment.GraphicsDevice.ViewSize();
+			return new Rectangle(0, 0, size.X, size.Y);
 		}
 	}
 }

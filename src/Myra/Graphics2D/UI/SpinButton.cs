@@ -3,6 +3,13 @@ using System.ComponentModel;
 using System.Linq;
 using Myra.Graphics2D.UI.Styles;
 using Myra.Utility;
+using System.Xml.Serialization;
+
+#if !STRIDE
+using Microsoft.Xna.Framework.Input;
+#else
+using Stride.Input;
+#endif
 
 namespace Myra.Graphics2D.UI
 {
@@ -34,6 +41,7 @@ namespace Myra.Graphics2D.UI
 		{
 			get; set;
 		}
+
 		[DefaultValue(HorizontalAlignment.Left)]
 		public override HorizontalAlignment HorizontalAlignment
 		{
@@ -96,6 +104,7 @@ namespace Myra.Graphics2D.UI
 				{
 					throw new Exception("Value can't be higher than Maximum");
 				}
+
 				if (FixedNumberSize)
 				{
 					string MajorString = "";
@@ -213,15 +222,20 @@ namespace Myra.Graphics2D.UI
 		[DefaultValue(1f)]
 		public float Mul_Increment { get; set; } = 1f;
 
-		internal protected override bool AcceptsKeyboardFocus
-		{
-			get { return true; }
-		}
+		[XmlIgnore]
+		[Browsable(false)]
+		public TextBox TextBox => _textField;
 
 		internal protected override bool AcceptsMouseWheelFocus
 		{
 			get { return true; }
 		}
+
+		/// <summary>
+		/// Fires when the value is about to be changed
+		/// Set Cancel to true if you want to cancel the change
+		/// </summary>
+		public event EventHandler<ValueChangingEventArgs<float?>> ValueChanging;
 
 		/// <summary>
 		/// Fires when the value had been changed
@@ -235,6 +249,8 @@ namespace Myra.Graphics2D.UI
 
 		public SpinButton(string styleName = Stylesheet.DefaultStyleName)
 		{
+			AcceptsKeyboardFocus = true;
+
 			InternalChild = new Grid();
 
 			HorizontalAlignment = HorizontalAlignment.Left;
@@ -251,9 +267,11 @@ namespace Myra.Graphics2D.UI
 				GridRowSpan = 2,
 				HorizontalAlignment = HorizontalAlignment.Stretch,
 				VerticalAlignment = VerticalAlignment.Stretch,
-				InputFilter = InputFilter,
-				TextVerticalAlignment = VerticalAlignment.Center
+				TextVerticalAlignment = VerticalAlignment.Center,
+				AcceptsKeyboardFocus = false
 			};
+
+			_textField.ValueChanging += _textField_ValueChanging;
 
 			_textField.TextChanged += TextBoxOnTextChanged;
 			_textField.TextChangedByUser += TextBoxOnTextChangedByUser;
@@ -301,50 +319,114 @@ namespace Myra.Graphics2D.UI
 			return f;
 		}
 
-		private void TextBoxOnTextChanged(object sender, ValueChangedEventArgs<string> eventArgs)
+		private string NumberToString(float? v)
 		{
-			var ev = ValueChanged;
-			if (ev != null)
+			if (v == null)
 			{
-				ev(this, new ValueChangedEventArgs<float?>(StringToFloat(eventArgs.OldValue), StringToFloat(eventArgs.NewValue)));
-			}
-		}
+				if (Nullable)
+				{
+					return string.Empty;
+				}
 
-		private void TextBoxOnTextChangedByUser(object sender, ValueChangedEventArgs<string> eventArgs)
-		{
-			var ev = ValueChangedByUser;
-			if (ev != null)
-			{
-				ev(this, new ValueChangedEventArgs<float?>(StringToFloat(eventArgs.OldValue), StringToFloat(eventArgs.NewValue)));
-			}
-		}
-
-		private string InputFilter(string s)
-		{
-			if (string.IsNullOrEmpty(s) || s == "-")
-			{
-				return s;
+				// Default value
+				return "0";
 			}
 
 			if (Integer)
 			{
-				int i;
-				if (!int.TryParse(s, out i))
+				return ((int)v.Value).ToString();
+			}
+
+			return v.Value.ToString();
+		}
+
+		private void _textField_ValueChanging(object sender, ValueChangingEventArgs<string> e)
+		{
+			var s = e.NewValue;
+			if (string.IsNullOrEmpty(s))
+			{
+			}
+			else if (s == "-")
+			{
+				// Allow prefix 'minus' only if Minimum lower than zero
+				if (Minimum != null && Minimum.Value >= 0)
 				{
-					return null;
+					e.Cancel = true;
+				}
+			}
+			else
+			{
+				float? newValue = null;
+				if (Integer)
+				{
+					int i;
+					if (!int.TryParse(s, out i))
+					{
+						e.Cancel = true;
+					}
+					else
+					{
+						if ((Minimum != null && i < (int)Minimum) ||
+							(Maximum != null && i > (int)Maximum))
+						{
+							e.Cancel = true;
+						}
+						else
+						{
+							newValue = i;
+						}
+					}
+				}
+				else
+				{
+					float f;
+					if (!float.TryParse(s, out f))
+					{
+						e.Cancel = true;
+					}
+					else
+					{
+						if ((Minimum != null && f < Minimum) ||
+							(Maximum != null && f > Maximum))
+						{
+							e.Cancel = true;
+						}
+						else
+						{
+							newValue = f;
+						}
+					}
 				}
 
-				return s;
+				if (newValue != null)
+				{
+				}
+
+				// Now SpinButton's 
+				if (ValueChanging != null)
+				{
+					var args = new ValueChangingEventArgs<float?>(Value, newValue);
+					ValueChanging(this, args);
+					if (args.Cancel)
+					{
+						e.Cancel = true;
+					}
+					else
+					{
+						e.NewValue = args.NewValue.HasValue ? NumberToString(args.NewValue) : null;
+					}
+				}
 			}
+		}
 
-			float f;
+		private void TextBoxOnTextChanged(object sender, ValueChangedEventArgs<string> eventArgs)
+		{
+			ValueChanged?.Invoke(this, new ValueChangedEventArgs<float?>(StringToFloat(eventArgs.OldValue), StringToFloat(eventArgs.NewValue)));
+		}
 
-			if (!float.TryParse(s, out f))
-			{
-				return null;
-			}
-
-			return s;
+		private void TextBoxOnTextChangedByUser(object sender, ValueChangedEventArgs<string> eventArgs)
+		{
+			ValueChangedByUser?.Invoke(this, new ValueChangedEventArgs<float?>(StringToFloat(eventArgs.OldValue), StringToFloat(eventArgs.NewValue)));
 		}
 
 		private bool InRange(float value)
@@ -446,7 +528,7 @@ namespace Myra.Graphics2D.UI
 				value = 0;
 			}
 
-			if (delta < 0)
+			if (delta < 0 && _downButton.Visible && _downButton.Enabled)
 			{
 				value -= _Increment * Mul_Increment;
 				if (InRange(value))
@@ -457,15 +539,11 @@ namespace Myra.Graphics2D.UI
 
 					if (changed)
 					{
-						var ev = ValueChangedByUser;
-						if (ev != null)
-						{
-							ev(this, new ValueChangedEventArgs<float?>(oldValue, value));
-						}
+						ValueChangedByUser?.Invoke(this, new ValueChangedEventArgs<float?>(oldValue, value));
 					}
 				}
 			}
-			else if (delta > 0)
+			else if (delta > 0 && _upButton.Visible && _upButton.Enabled)
 			{
 				value += _Increment * Mul_Increment;
 				if (InRange(value))
@@ -476,14 +554,17 @@ namespace Myra.Graphics2D.UI
 
 					if (changed)
 					{
-						var ev = ValueChangedByUser;
-						if (ev != null)
-						{
-							ev(this, new ValueChangedEventArgs<float?>(oldValue, value));
-						}
+						ValueChangedByUser?.Invoke(this, new ValueChangedEventArgs<float?>(oldValue, value));
 					}
 				}
 			}
+		}
+
+		public override void OnGotKeyboardFocus()
+		{
+			base.OnGotKeyboardFocus();
+
+			_textField.OnGotKeyboardFocus();
 		}
 
 		public override void OnLostKeyboardFocus()
@@ -492,8 +573,33 @@ namespace Myra.Graphics2D.UI
 
 			if (string.IsNullOrEmpty(_textField.Text) && !Nullable)
 			{
-				_textField.Text = "0";
+				var defaultValue = "0";
+				if (Minimum != null && Minimum.Value > 0)
+				{
+					defaultValue = NumberToString(Minimum.Value);
+				} else if (Maximum != null && Maximum.Value < 0)
+				{
+					defaultValue = NumberToString(Maximum.Value);
+				}
+
+				_textField.Text = defaultValue;
 			}
+
+			_textField.OnLostKeyboardFocus();
+		}
+
+		public override void OnKeyDown(Keys k)
+		{
+			base.OnKeyDown(k);
+
+			_textField.OnKeyDown(k);
+		}
+
+		public override void OnChar(char c)
+		{
+			base.OnChar(c);
+
+			_textField.OnChar(c);
 		}
 	}
 }

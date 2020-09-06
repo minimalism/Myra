@@ -13,10 +13,15 @@ namespace Myra.Utility
 	{
 		private static bool CommonTouchCheck(this Widget w)
 		{
-			return w.Visible && w.Active && w.ContainsMouse;
+			return w.Visible && w.Active && w.Enabled && w.ContainsTouch;
 		}
 
-		public static bool FallsThrough(this Widget w, Point p)
+        private static bool CommonMouseCheck(this Widget w)
+        {
+            return w.Visible && w.Active && w.Enabled && w.ContainsMouse;
+        }
+
+        public static bool FallsThrough(this Widget w, Point p)
 		{
 			// Only containers can fall through
 			if (!(w is Grid ||
@@ -56,8 +61,10 @@ namespace Myra.Utility
 
 				if (w.CommonTouchCheck())
 				{
+					// Since OnTouchDown may reset Desktop, we need to save break condition before calling it
+					var doBreak = (w.Desktop != null && !w.FallsThrough(w.Desktop.TouchPosition));
 					w.OnTouchDown();
-					if (!w.FallsThrough(Desktop.TouchPosition))
+					if (doBreak)
 					{
 						break;
 					}
@@ -92,7 +99,7 @@ namespace Myra.Utility
 				if (w.CommonTouchCheck())
 				{
 					w.OnTouchDoubleClick();
-					if (!w.FallsThrough(Desktop.TouchPosition))
+					if (w.Desktop != null && !w.FallsThrough(w.Desktop.TouchPosition))
 					{
 						break;
 					}
@@ -114,25 +121,22 @@ namespace Myra.Utility
 
 				var wasMouseOver = w.IsMouseInside;
 
-				if (!mouseConsumed)
+				if (w.CommonMouseCheck())
 				{
-					if (w.CommonTouchCheck())
+					var isMouseOver = w.ContainsMouse;
+					var wasMouseOver = w.IsMouseInside;
+
+					if (isMouseOver && !wasMouseOver)
 					{
-						if (!wasMouseOver)
-						{
-							w.OnMouseEntered();
-						}
-						else
-						{
-							w.OnMouseMoved();
-						}
-						mouseConsumed = true;
+						w.OnMouseEntered();
 					}
-					else if (wasMouseOver)
+
+					if (isMouseOver && wasMouseOver)
 					{
-						w.OnMouseLeft();
+						w.OnMouseMoved();
 					}
-					if (w.IsModal)
+
+					if (w.Desktop != null && !w.FallsThrough(w.Desktop.MousePosition))
 					{
 						mouseConsumed = true;
 					}
@@ -176,7 +180,7 @@ namespace Myra.Utility
 						w.OnTouchMoved();
 					}
 
-					if (!w.FallsThrough(Desktop.TouchPosition))
+					if (w.Desktop != null && !w.FallsThrough(w.Desktop.TouchPosition))
 					{
 						break;
 					}

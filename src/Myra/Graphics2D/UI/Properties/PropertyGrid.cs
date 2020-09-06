@@ -448,7 +448,7 @@ namespace Myra.Graphics2D.UI.Properties
 						FireChanged(propertyType.Name);
 					};
 
-					dlg.ShowModal();
+					dlg.ShowModal(Desktop);
 				};
 			}
 			else
@@ -528,7 +528,7 @@ namespace Myra.Graphics2D.UI.Properties
 						FireChanged(propertyType.Name);
 					};
 
-					dlg.ShowModal();
+					dlg.ShowModal(Desktop);
 				};
 			}
 			else
@@ -544,15 +544,28 @@ namespace Myra.Graphics2D.UI.Properties
 			var propertyType = record.Type;
 			var value = record.GetValue(_object);
 
-			var values = Enum.GetValues(propertyType);
+			var isNullable = propertyType.IsNullableEnum();
+			var enumType = isNullable ? propertyType.GetNullableType() : propertyType;
+			var values = Enum.GetValues(enumType);
 
 			var cb = new ComboBox();
+
+			if (isNullable)
+			{
+				cb.Items.Add(new ListItem(string.Empty, null, null));
+			}
+
 			foreach (var v in values)
 			{
 				cb.Items.Add(new ListItem(v.ToString(), null, v));
 			}
 
-			cb.SelectedIndex = Array.IndexOf(values, value);
+			var selectedIndex = Array.IndexOf(values, value);
+			if (isNullable)
+			{
+				++selectedIndex;
+			}
+			cb.SelectedIndex = selectedIndex;
 
 			if (hasSetter)
 			{
@@ -560,8 +573,8 @@ namespace Myra.Graphics2D.UI.Properties
 				{
 					if (cb.SelectedIndex != -1)
 					{
-						SetValue(record, _object, cb.SelectedIndex);
-						FireChanged(propertyType.Name);
+						SetValue(record, _object, cb.SelectedItem.Tag);
+						FireChanged(enumType.Name);
 					}
 				};
 			}
@@ -639,7 +652,7 @@ namespace Myra.Graphics2D.UI.Properties
 					{
 						spinButton.Value = args.OldValue;
 						var dialog = Dialog.CreateMessageBox("Error", ex.ToString());
-						dialog.ShowModal();
+						dialog.ShowModal(Desktop);
 					}
 				};
 			}
@@ -765,7 +778,7 @@ namespace Myra.Graphics2D.UI.Properties
 					UpdateLabelCount(label, items.Count);
 				};
 
-				dialog.ShowModal();
+				dialog.ShowModal(Desktop);
 			};
 
 			subGrid.Widgets.Add(button);
@@ -871,7 +884,7 @@ namespace Myra.Graphics2D.UI.Properties
 						}
 					};
 
-					dlg.ShowModal();
+					dlg.ShowModal(Desktop);
 				};
 			}
 			else
@@ -920,9 +933,8 @@ namespace Myra.Graphics2D.UI.Properties
 				{
 					valueWidget = CreateColorEditor(record, hasSetter);
 				}
-				else if (propertyType.IsEnum)
+				else if (propertyType.IsEnum || propertyType.IsNullableEnum())
 				{
-
 					valueWidget = CreateEnumEditor(record, hasSetter);
 				}
 				else if (propertyType.IsNumericType() ||

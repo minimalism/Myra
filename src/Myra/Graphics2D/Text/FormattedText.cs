@@ -560,14 +560,26 @@ namespace Myra.Graphics2D.Text
 			return null;
 		}
 
-		public void Draw(SpriteBatch batch, Point position, Rectangle clip, Color textColor, bool useChunkColor, float opacity = 1.0f)
+		public void Draw(SpriteBatch batch, TextAlign align, Rectangle bounds, Rectangle clip, Color textColor, bool useChunkColor, float opacity = 1.0f)
 		{
-			var y = position.Y;
+			var y = bounds.Y;
 			foreach (var line in Lines)
 			{
 				if (y + line.Size.Y >= clip.Top && y <= clip.Bottom)
 				{
-					textColor = line.Draw(batch, position, textColor, useChunkColor, opacity);
+					int x = bounds.X;
+
+					switch (align)
+					{
+						case TextAlign.Center:
+							x = bounds.X + (bounds.Width / 2) - (line.Size.X / 2);
+							break;
+						case TextAlign.Right:
+							x = bounds.X + bounds.Width - line.Size.X;
+							break;
+					}
+
+					textColor = line.Draw(batch, new Point(x, y), textColor, useChunkColor, opacity);
 				}
 				else
 				{

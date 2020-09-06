@@ -43,13 +43,10 @@ namespace Myra.Graphics2D.UI
 
 		protected internal override bool AcceptsMouseWheelFocus => InternalChild.AcceptsMouseWheelFocus;
 
-		internal protected override bool AcceptsKeyboardFocus
-		{
-			get { return true; }
-		}
-
 		public ListBox(string styleName = Stylesheet.DefaultStyleName) : base(new ScrollViewer())
 		{
+			AcceptsKeyboardFocus = true;
+
 			_box = new VerticalStackPanel();
 			InternalChild.Content = _box;
 
@@ -168,6 +165,12 @@ namespace Myra.Graphics2D.UI
 			switch(k)
 			{
 				case Keys.Up:
+					if (SelectedIndex == null && Items.Count > 0)
+					{
+						SelectedIndex = Items.Count - 1;
+						UpdateScrolling();
+					}
+
 					if (SelectedIndex != null && SelectedIndex.Value > 0)
 					{
 						SelectedIndex = SelectedIndex.Value - 1;
@@ -175,6 +178,12 @@ namespace Myra.Graphics2D.UI
 					}
 					break;
 				case Keys.Down:
+					if (SelectedIndex == null && Items.Count > 0)
+					{
+						SelectedIndex = 0;
+						UpdateScrolling();
+					}
+
 					if (SelectedIndex != null && SelectedIndex.Value < Items.Count - 1)
 					{
 						SelectedIndex = SelectedIndex.Value + 1;
@@ -195,6 +204,13 @@ namespace Myra.Graphics2D.UI
 			{
 				ComboHideDropdown();
 			}
+		}
+
+		protected override void OnItemCollectionChanged()
+		{
+			base.OnItemCollectionChanged();
+
+			InternalChild.ResetScroll();
 		}
 
 		private void UpdateScrolling()

@@ -31,6 +31,8 @@ namespace Myra.MML
 		public Assembly Assembly = typeof(Widget).Assembly;
 		public Func<Type, string, object> ResourceGetter = null;
 
+		private const string UserDataAttributePrefix = "_";
+
 		public void Load(object obj, XElement el)
 		{
 			var type = obj.GetType();
@@ -70,6 +72,10 @@ namespace Myra.MML
 						else
 						{
 							value = ColorStorage.FromName(attr.Value);
+							if (value == null)
+							{
+								throw new Exception(string.Format("Could not find parse color '{0}'", attr.Value));
+							}
 						}
 					}
 					else if ((typeof(IBrush).IsAssignableFrom(propertyType) ||
@@ -116,6 +122,14 @@ namespace Myra.MML
 					}
 
 					property.SetValue(obj, value);
+				}
+				else
+				{
+					// Stow away custom user attributes
+					if (propertyName.StartsWith(UserDataAttributePrefix) && baseObject != null)
+					{
+						baseObject.UserData.Add(propertyName, attr.Value);
+					}
 				}
 			}
 

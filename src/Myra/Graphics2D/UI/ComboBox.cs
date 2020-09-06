@@ -42,30 +42,28 @@ namespace Myra.Graphics2D.UI
 			get { return InternalChild.IsPressed; }
 		}
 
-		public override bool IsPlaced
+		public override Desktop Desktop
 		{
 			get
 			{
-				return base.IsPlaced;
+				return base.Desktop;
 			}
 
 			set
 			{
-				if (IsPlaced)
+				if (Desktop != null)
 				{
 					Desktop.ContextMenuClosed -= DesktopOnContextMenuClosed;
 				}
 
-				base.IsPlaced = value;
+				base.Desktop = value;
 
-				if (IsPlaced)
+				if (Desktop != null)
 				{
 					Desktop.ContextMenuClosed += DesktopOnContextMenuClosed;
 				}
 			}
 		}
-
-		protected internal override bool AcceptsKeyboardFocus => true;
 
 		public override ObservableCollection<ListItem> Items => _listBox.Items;
 
@@ -88,6 +86,8 @@ namespace Myra.Graphics2D.UI
 
 		public ComboBox(string styleName = Stylesheet.DefaultStyleName)
 		{
+			AcceptsKeyboardFocus = true;
+
 			InternalChild = new ImageTextButton(null)
 			{
 				Toggleable = true,
@@ -178,6 +178,8 @@ namespace Myra.Graphics2D.UI
 					break;
 				}
 			}
+
+			InvalidateMeasure();
 		}
 
 		internal void UpdateSelectedItem()

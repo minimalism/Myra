@@ -108,26 +108,36 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public override bool IsPlaced
+		public override Desktop Desktop
 		{
 			get
 			{
-				return base.IsPlaced;
+				return base.Desktop;
 			}
 
 			set
 			{
-				if (IsPlaced)
+				if (Desktop != null)
 				{
 					Desktop.TouchMoved -= DesktopTouchMoved;
 				}
 
-				base.IsPlaced = value;
+				base.Desktop = value;
 
-				if (IsPlaced)
+				if (Desktop != null)
 				{
 					Desktop.TouchMoved += DesktopTouchMoved;
 				}
+			}
+		}
+
+		[XmlIgnore]
+		[Browsable(false)]
+		public ImageButton ImageButton
+		{
+			get
+			{
+				return InternalChild;
 			}
 		}
 

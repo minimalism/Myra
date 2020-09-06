@@ -163,23 +163,23 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public override bool IsPlaced
+		public override Desktop Desktop
 		{
 			get
 			{
-				return base.IsPlaced;
+				return base.Desktop;
 			}
 
 			set
 			{
-				if (IsPlaced)
+				if (Desktop != null)
 				{
 					Desktop.ContextMenuClosed -= DesktopOnContextMenuClosed;
 				}
 
-				base.IsPlaced = value;
+				base.Desktop = value;
 
-				if (IsPlaced)
+				if (Desktop != null)
 				{
 					Desktop.ContextMenuClosed += DesktopOnContextMenuClosed;
 				}
@@ -325,10 +325,10 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		protected internal override bool AcceptsKeyboardFocus => true;
-
 		protected Menu(string styleName)
 		{
+			AcceptsKeyboardFocus = true;
+
 			InternalChild = new Grid
 			{
 				CanSelectNothing = true

@@ -35,6 +35,7 @@ namespace Myra.Graphics2D.UI
 		private Point _internalScrolling = Point.Zero;
 		private bool _suppressRedoStackReset = false;
 		private string _text;
+		private string _hintText;
 		private bool _passwordField;
 		private bool _isTouchDown;
 
@@ -67,9 +68,33 @@ namespace Myra.Graphics2D.UI
 			set
 			{
 				SetText(value, false);
+				DisableHintText();
 			}
 		}
+		
+		[Category("Appearance")]
+		[DefaultValue(null)]
+		public string HintText
+		{
+			get
+			{
+				return _hintText;
+			}
+			set
+			{
+				_hintText = value;
 
+				if (_text == null)
+				{
+					EnableHintText();
+				}
+			}
+		}
+		
+		[Browsable(false)]
+		[XmlIgnore]
+		public bool HintTextEnabled { get; set; }
+		
 		[Category("Behavior")]
 		[DefaultValue(false)]
 		public bool Multiline
@@ -217,11 +242,6 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		internal protected override bool AcceptsKeyboardFocus
-		{
-			get { return true; }
-		}
-
 		[DefaultValue(HorizontalAlignment.Stretch)]
 		public override HorizontalAlignment HorizontalAlignment
 		{
@@ -233,13 +253,6 @@ namespace Myra.Graphics2D.UI
 			{
 				base.HorizontalAlignment = value;
 			}
-		}
-
-		[Browsable(false)]
-		[XmlIgnore]
-		public Func<string, string> InputFilter
-		{
-			get; set;
 		}
 
 		[Browsable(false)]
@@ -296,28 +309,35 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public override bool IsPlaced
+		public override Desktop Desktop
 		{
 			get
 			{
-				return base.IsPlaced;
+				return base.Desktop;
 			}
 
 			set
 			{
-				if (IsPlaced)
+				if (Desktop != null)
 				{
 					Desktop.TouchUp -= DesktopTouchUp;
 				}
 
-				base.IsPlaced = value;
+				base.Desktop = value;
 
-				if (IsPlaced)
+				if (Desktop != null)
 				{
 					Desktop.TouchUp += DesktopTouchUp;
 				}
 			}
 		}
+
+
+		/// <summary>
+		/// Fires when the value is about to be changed
+		/// Set Cancel to true if you want to cancel the change
+		/// </summary>
+		public event EventHandler<ValueChangingEventArgs<string>> ValueChanging;
 
 		/// <summary>
 		/// Fires every time when the text had been changed
@@ -333,6 +353,8 @@ namespace Myra.Graphics2D.UI
 
 		public TextBox(string styleName = Stylesheet.DefaultStyleName)
 		{
+			AcceptsKeyboardFocus = true;
+
 			HorizontalAlignment = HorizontalAlignment.Stretch;
 			VerticalAlignment = VerticalAlignment.Top;
 
@@ -453,6 +475,8 @@ namespace Myra.Graphics2D.UI
 
 		private bool Paste(string text)
 		{
+			text = Process(text);
+			
 			DeleteSelection();
 			if (InsertChars(CursorPosition, text))
 			{
@@ -874,18 +898,19 @@ namespace Myra.Graphics2D.UI
 				return false;
 			}
 
-			// Filter check
-			var f = InputFilter;
-			if (f != null)
+			var oldValue = _text;
+			if (ValueChanging != null)
 			{
-				value = f(value);
-				if (value == null)
+				var args = new ValueChangingEventArgs<string>(oldValue, value);
+				ValueChanging(this, args);
+				if (args.Cancel)
 				{
 					return false;
 				}
+
+				value = args.NewValue;
 			}
 
-			var oldValue = _text;
 			_text = value;
 
 			UpdateFormattedText();
@@ -925,12 +950,41 @@ namespace Myra.Graphics2D.UI
 			if (string.IsNullOrEmpty(_text))
 			{
 				_formattedText.Text = _text;
+				EnableHintText();
 				return;
 			}
 
+			DisableHintText();
 			_formattedText.Text = PasswordField ? new string('*', _text.Length) : _text;
 		}
 
+		private void DisableHintText()
+		{
+			if (_hintText == null)
+			{
+				return;
+			}
+
+			_formattedText.Text = _text;
+			HintTextEnabled = false;
+		}
+
+		private void EnableHintText()
+		{
+			if (ShouldEnableHintText())
+			{
+				_formattedText.Text = _hintText;
+				HintTextEnabled = true;
+			}
+		}
+
+		private bool ShouldEnableHintText()
+		{			
+			return _hintText != null &&
+			       string.IsNullOrEmpty(_text)
+			       && !IsKeyboardFocused;
+		}
+		
 		private void UpdateScrolling()
 		{
 			var p = GetRenderPositionByIndex(CursorPosition);
@@ -1175,6 +1229,15 @@ namespace Myra.Graphics2D.UI
 
 			_lastBlinkStamp = DateTime.Now;
 			_cursorOn = true;
+			
+			DisableHintText();
+		}
+
+		public override void OnLostKeyboardFocus()
+		{
+			base.OnLostKeyboardFocus();
+
+			EnableHintText();
 		}
 
 		private Point GetRenderPositionByIndex(int index)
@@ -1286,7 +1349,12 @@ namespace Myra.Graphics2D.UI
 			RenderSelection(context);
 
 			var textColor = TextColor;
-			if (!Enabled && DisabledTextColor != null)
+			var opacity = context.Opacity;
+
+			if (HintTextEnabled)
+			{
+				opacity *= 0.5f;
+			} else if (!Enabled && DisabledTextColor != null)
 			{
 				textColor = DisabledTextColor.Value;
 			}
@@ -1300,7 +1368,8 @@ namespace Myra.Graphics2D.UI
 
 			var p = new Point(centeredBounds.Location.X - _internalScrolling.X,
 				centeredBounds.Location.Y - _internalScrolling.Y);
-			_formattedText.Draw(context.Batch, p, context.View, textColor, false, context.Opacity);
+
+			_formattedText.Draw(context.Batch, TextAlign.Left, bounds, context.View, textColor, false, opacity);
 
 			if (!IsKeyboardFocused)
 			{

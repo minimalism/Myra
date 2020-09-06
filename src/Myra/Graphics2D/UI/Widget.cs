@@ -26,6 +26,7 @@ namespace Myra.Graphics2D.UI
 			Invalid
 		}
 
+		private Point? _startPos;
 		private Thickness _margin, _borderThickness, _padding;
 		private int _left, _top;
 		private int? _minWidth, _minHeight, _maxWidth, _maxHeight, _width, _height;
@@ -37,7 +38,8 @@ namespace Myra.Graphics2D.UI
 		private bool _measureDirty = true;
 		private bool _active = false;
 		private bool _forceInactive = false;
-		private bool _isPlaced = false;
+		private Desktop _desktop;
+		private bool _isDraggable = false;
 
 		private Point _lastMeasureSize;
 		private Point _lastMeasureAvailableSize;
@@ -52,6 +54,7 @@ namespace Myra.Graphics2D.UI
 		private float _opacity = 1.0f;
 
 		private bool _enabled;
+		private bool _isKeyboardFocused = false;
 
 		/// <summary>
 		/// Internal use only. (MyraPad)
@@ -541,29 +544,88 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		/// <summary>
-		/// Determines whether a widget had been placed on Desktop
-		/// </summary>
-		[XmlIgnore]
-		[Browsable(false)]
-		public virtual bool IsPlaced
+
+		[Category("Behavior")]
+		[DefaultValue(false)]
+		public virtual bool IsDraggable
 		{
 			get
 			{
-				return _isPlaced;
+				return _isDraggable;
 			}
 
 			set
 			{
-				_isPlaced = value;
+				if (value == _isDraggable)
+				{
+					return;
+				}
 
+				_isDraggable = value;
+				SubscribeOnTouchMoved(IsPlaced && IsDraggable);
+			}
+		}
+
+		[Category("Behavior")]
+		[DefaultValue(DragDirection.Both)]
+		public DragDirection DragDirection { get; set; } = DragDirection.Both;
+
+		[XmlIgnore]
+		[Browsable(false)]
+		public Widget DragHandle { get; set; }
+		
+		
+		[XmlIgnore]
+		[Browsable(false)]
+		private int RelativeLeft { get; set; }
+		
+		[XmlIgnore]
+		[Browsable(false)]
+		private int RelativeTop { get; set; }
+		
+		[XmlIgnore]
+		[Browsable(false)]
+
+		private int RelativeRight { get; set; }
+		
+		[XmlIgnore]
+		[Browsable(false)]
+		private int RelativeBottom { get; set; }
+
+		/// <summary>
+		/// Determines whether the widget had been placed on Desktop
+		/// </summary>
+		[XmlIgnore]
+		[Browsable(false)]
+		public bool IsPlaced
+		{
+			get
+			{
+				return Desktop != null;
+			}
+		}
+
+		[XmlIgnore]
+		[Browsable(false)]
+		public virtual Desktop Desktop
+		{
+			get
+			{
+				return _desktop;
+			}
+
+			internal set
+			{
+				_desktop = value;
 				IsMouseInside = false;
 				IsTouchInside = false;
 
-				if (_isPlaced)
+				if (_desktop != null)
 				{
 					InvalidateLayout();
 				}
+
+				SubscribeOnTouchMoved(IsPlaced && IsDraggable);
 			}
 		}
 
@@ -731,7 +793,7 @@ namespace Myra.Graphics2D.UI
 		{
 			get
 			{
-				return BorderBounds.Contains(Desktop.MousePosition);
+				return Desktop != null && BorderBounds.Contains(Desktop.MousePosition);
 			}
 		}
 
@@ -739,10 +801,9 @@ namespace Myra.Graphics2D.UI
 		{
 			get
 			{
-				return BorderBounds.Contains(Desktop.TouchPosition);
+				return Desktop != null && BorderBounds.Contains(Desktop.TouchPosition);
 			}
 		}
-
 
 		protected Rectangle BackgroundBounds
 		{
@@ -779,8 +840,8 @@ namespace Myra.Graphics2D.UI
 			get
 			{
 				return Margin.Left + Margin.Right +
-				  BorderThickness.Left + BorderThickness.Right +
-				  Padding.Left + Padding.Right;
+					BorderThickness.Left + BorderThickness.Right +
+					Padding.Left + Padding.Right;
 			}
 		}
 
@@ -791,17 +852,14 @@ namespace Myra.Graphics2D.UI
 			get
 			{
 				return Margin.Top + Margin.Bottom +
-				  BorderThickness.Top + BorderThickness.Bottom +
-				  Padding.Top + Padding.Bottom;
+					BorderThickness.Top + BorderThickness.Bottom +
+					Padding.Top + Padding.Bottom;
 			}
 		}
 
 		[Browsable(false)]
 		[XmlIgnore]
-		internal protected virtual bool AcceptsKeyboardFocus
-		{
-			get { return false; }
-		}
+		public bool AcceptsKeyboardFocus { get; set; }
 
 		[Browsable(false)]
 		[XmlIgnore]
@@ -819,11 +877,22 @@ namespace Myra.Graphics2D.UI
 
 		[Browsable(false)]
 		[XmlIgnore]
-		public virtual bool IsKeyboardFocused
+		public bool IsKeyboardFocused
 		{
 			get
 			{
-				return Desktop.FocusedKeyboardWidget == this;
+				return _isKeyboardFocused;
+			}
+
+			internal set
+			{
+				if (value == _isKeyboardFocused)
+				{
+					return;
+				}
+
+				_isKeyboardFocused = value;
+				KeyboardFocusChanged?.Invoke(this, EventArgs.Empty);
 			}
 		}
 
@@ -833,7 +902,7 @@ namespace Myra.Graphics2D.UI
 		{
 			get
 			{
-				return Desktop.FocusedMouseWheelWidget == this;
+				return Desktop != null && Desktop.FocusedMouseWheelWidget == this;
 			}
 		}
 
@@ -865,11 +934,17 @@ namespace Myra.Graphics2D.UI
 		public event EventHandler TouchUp;
 		public event EventHandler TouchDoubleClick;
 
+		public event EventHandler KeyboardFocusChanged;
+
 		public event EventHandler<GenericEventArgs<float>> MouseWheelChanged;
 
 		public event EventHandler<GenericEventArgs<Keys>> KeyUp;
 		public event EventHandler<GenericEventArgs<Keys>> KeyDown;
 		public event EventHandler<GenericEventArgs<char>> Char;
+
+		[Browsable(false)]
+		[XmlIgnore]
+		public Action<RenderContext> BeforeRender, AfterRender;
 
 		public Widget()
 		{
@@ -918,6 +993,36 @@ namespace Myra.Graphics2D.UI
 			return result;
 		}
 
+		public void BringToFront()
+		{
+			if (Parent != null && !(Parent is IMultipleItemsContainer))
+			{
+				return;
+			}
+
+			var widgets = (Parent as IMultipleItemsContainer)?.Widgets ?? Desktop.Widgets;
+
+			if (widgets[widgets.Count - 1] == this) return;
+
+			widgets.Remove(this);
+			widgets.Add(this);
+		}
+
+		public void BringToBack()
+		{
+			if (Parent != null && !(Parent is IMultipleItemsContainer))
+			{
+				return;
+			}
+
+			var widgets = (Parent as IMultipleItemsContainer)?.Widgets ?? Desktop.Widgets;
+
+			if (widgets[widgets.Count - 1] == this) return;
+
+			widgets.Remove(this);
+			widgets.Insert(0, this);
+		}
+
 		public void Render(RenderContext context)
 		{
 			if (!Visible)
@@ -946,12 +1051,27 @@ namespace Myra.Graphics2D.UI
 
 				context.Flush();
 
+				if (context.SpriteBatchBeginParams.TransformMatrix.HasValue)
+				{
+					var pos = new Vector2(newScissorRectangle.X, newScissorRectangle.Y);
+					var size = new Vector2(newScissorRectangle.Width, newScissorRectangle.Height);
+
+					pos = Vector2.Transform(pos, context.SpriteBatchBeginParams.TransformMatrix.Value);
+					size = Vector2.Transform(size, context.SpriteBatchBeginParams.TransformMatrix.Value);
+
+					newScissorRectangle = new Rectangle((int) pos.X, (int) pos.Y, (int) size.X, (int) size.Y);  
+				}
+
 				CrossEngineStuff.SetScissor(newScissorRectangle);
 			}
 
 			var oldOpacity = context.Opacity;
+			var oldView = context.View;
 
 			context.Opacity *= Opacity;
+			context.View = view;
+
+			BeforeRender?.Invoke(context);
 
 			// Background
 			var background = GetCurrentBackground();
@@ -986,11 +1106,15 @@ namespace Myra.Graphics2D.UI
 				}
 			}
 
-			var oldView = context.View;
-			context.View = view;
 			InternalRender(context);
-			context.View = oldView;
 
+			AfterRender?.Invoke(context);
+
+			// Restore context settings
+			context.View = oldView;
+			context.Opacity = oldOpacity;
+
+			// Optional debug rendering
 			if (MyraEnvironment.DrawWidgetsFrames)
 			{
 				batch.DrawRectangle(Bounds, Color.LightGreen);
@@ -1008,11 +1132,11 @@ namespace Myra.Graphics2D.UI
 
 			if (ClipToBounds && !MyraEnvironment.DisableClipping)
 			{
+				// Restore scissor
 				context.Flush();
 				CrossEngineStuff.SetScissor(oldScissorRectangle);
 			}
 
-			context.Opacity = oldOpacity;
 		}
 
 		public virtual void InternalRender(RenderContext context)
@@ -1154,7 +1278,7 @@ namespace Myra.Graphics2D.UI
 				// Full rearrange
 				Point size;
 				if (HorizontalAlignment != HorizontalAlignment.Stretch ||
-					VerticalAlignment != VerticalAlignment.Stretch)
+						VerticalAlignment != VerticalAlignment.Stretch)
 				{
 					size = Measure(_containerBounds.Size());
 				}
@@ -1187,7 +1311,7 @@ namespace Myra.Graphics2D.UI
 				}
 
 				// Align
-				var controlBounds = LayoutUtils.Align(containerSize, size, HorizontalAlignment, VerticalAlignment);
+				var controlBounds = LayoutUtils.Align(containerSize, size, HorizontalAlignment, VerticalAlignment, Parent == null);
 				controlBounds.Offset(_containerBounds.Location);
 
 				controlBounds.Offset(Left, Top);
@@ -1196,6 +1320,8 @@ namespace Myra.Graphics2D.UI
 				_actualBounds = CalculateClientBounds(controlBounds);
 
 				Arrange();
+				
+				CalculateRelativePositions();
 			}
 			else
 			{
@@ -1207,6 +1333,23 @@ namespace Myra.Graphics2D.UI
 			_layoutState = LayoutState.Normal;
 
 			LayoutUpdated.Invoke(this);
+		}
+
+		private void CalculateRelativePositions()
+		{
+			RelativeLeft = Left - Bounds.X;
+			RelativeTop = Top - Bounds.Y;
+			
+			if (Parent != null)
+			{
+				RelativeRight = Left + Parent.Bounds.Width - Bounds.X;
+				RelativeBottom = Top + Parent.Bounds.Height - Bounds.Y;
+			}
+			else
+			{
+				RelativeRight = Left + Desktop.InternalBounds.Width - Bounds.X;
+				RelativeBottom = Top + Desktop.InternalBounds.Height - Bounds.Y;
+			}
 		}
 
 		private Widget FindWidgetBy(Func<Widget, bool> finder)
@@ -1270,7 +1413,7 @@ namespace Myra.Graphics2D.UI
 			{
 				Parent.InvalidateMeasure();
 			}
-			else
+			else if (Desktop != null)
 			{
 				Desktop.InvalidateLayout();
 			}
@@ -1379,11 +1522,31 @@ namespace Myra.Graphics2D.UI
 				Desktop.FocusedMouseWheelWidget = this;
 			}
 
+			var x = Bounds.X;
+			var y = Bounds.Y;
+
+			var bounds = DragHandle != null
+					? new Rectangle(
+							x,
+							y,
+							DragHandle.Bounds.Right - x,
+							DragHandle.Bounds.Bottom - y
+					) : Rectangle.Empty;
+
+			var touchPos = Desktop.TouchPosition;
+
+			if (bounds == Rectangle.Empty || bounds.Contains(touchPos))
+			{
+				_startPos = new Point(touchPos.X - Left,
+						touchPos.Y - Top);
+			}
+
 			TouchDown.Invoke(this);
 		}
 
 		public virtual void OnTouchUp()
 		{
+			_startPos = null;
 			IsTouchInside = false;
 			TouchUp.Invoke(this);
 		}
@@ -1440,10 +1603,12 @@ namespace Myra.Graphics2D.UI
 
 		public virtual void OnLostKeyboardFocus()
 		{
+			IsKeyboardFocused = false;
 		}
 
 		public virtual void OnGotKeyboardFocus()
 		{
+			IsKeyboardFocused = true;
 		}
 
 		protected internal virtual void OnActiveChanged()
@@ -1511,6 +1676,91 @@ namespace Myra.Graphics2D.UI
 		public void SetMouseWheelFocus()
 		{
 			Desktop.FocusedMouseWheelWidget = this;
+		}
+
+		private void SubscribeOnTouchMoved(bool subscribe)
+		{
+			if (Parent != null)
+			{
+				Parent.TouchMoved -= DesktopOnTouchMoved;
+				Parent.TouchUp -= DesktopTouchUp;
+			}
+			else if (Desktop != null)
+			{
+				Desktop.TouchMoved -= DesktopOnTouchMoved;
+				Desktop.TouchUp -= DesktopTouchUp;
+			}
+
+			if (subscribe)
+			{
+				if (Parent != null)
+				{
+					Parent.TouchMoved += DesktopOnTouchMoved;
+					Parent.TouchUp += DesktopTouchUp;
+				}
+				else if (Desktop != null)
+				{
+					Desktop.TouchMoved += DesktopOnTouchMoved;
+					Desktop.TouchUp += DesktopTouchUp;
+				}
+			}
+		}
+
+		private void DesktopOnTouchMoved(object sender, EventArgs args)
+		{
+			if (_startPos == null || !IsDraggable)
+			{
+				return;
+			}
+
+			var position = new Point(Desktop.TouchPosition.X - _startPos.Value.X,
+				Desktop.TouchPosition.Y - _startPos.Value.Y);
+
+			int newLeft = Left;
+			int newTop = Top;
+			
+			if (DragDirection.HasFlag(DragDirection.Horizontal))
+			{
+				newLeft = position.X;
+			}
+
+			if (DragDirection.HasFlag(DragDirection.Vertical))
+			{
+				newTop = position.Y;
+			}
+
+			ConstrainToBounds(ref newLeft, ref newTop);
+
+			Left = newLeft;
+			Top = newTop;
+		}
+
+		private void ConstrainToBounds(ref int newLeft, ref int newTop)
+		{
+			if (newLeft < RelativeLeft)
+			{
+				newLeft = RelativeLeft;
+			}
+
+			if (newTop < RelativeTop)
+			{
+				newTop = RelativeTop;
+			}
+
+			if (newTop + Bounds.Height > RelativeBottom)
+			{
+				newTop = RelativeBottom - Bounds.Height;
+			}
+				
+			if (newLeft + Bounds.Width > RelativeRight)
+			{
+				newLeft = RelativeRight - Bounds.Width;
+			}
+		}
+
+		private void DesktopTouchUp(object sender, EventArgs args)
+		{
+			_startPos = null;
 		}
 	}
 }

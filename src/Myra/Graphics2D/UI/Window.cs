@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Linq;
 using Myra.Graphics2D.UI.Styles;
 using Myra.Utility;
 using System.Xml.Serialization;
@@ -18,18 +17,8 @@ using Stride.Input;
 
 namespace Myra.Graphics2D.UI
 {
-	public class WindowClosingEventArgs : EventArgs
-	{
-		public bool Cancel { get; set; }
-
-		public WindowClosingEventArgs()
-		{
-		}
-	}
-
 	public class Window : SingleItemContainer<VerticalStackPanel>, IContent
 	{
-		private Point? _startPos;
 		private readonly Label _titleLabel;
 		private Widget _content;
 		private Widget _previousMouseWheelFocus;
@@ -147,58 +136,31 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
+		[DefaultValue(true)]
+		public override bool IsDraggable
+		{
+			get => base.IsDraggable;
+			set => base.IsDraggable = value;
+		}
+
+		[Category("Behavior")]
+		[DefaultValue(Keys.Escape)]
+		public Keys CloseKey { get; set; }
+
 		private bool IsWindowPlaced
 		{
 			get; set;
 		}
 
-		public override bool IsPlaced
-		{
-			get
-			{
-				return base.IsPlaced;
-			}
-
-			set
-			{
-				if (IsPlaced)
-				{
-					if (Parent != null)
-					{
-						Parent.TouchMoved -= DesktopOnTouchMoved;
-						Parent.TouchUp -= DesktopTouchUp;
-					}
-					else
-					{
-						Desktop.TouchMoved -= DesktopOnTouchMoved;
-						Desktop.TouchUp -= DesktopTouchUp;
-					}
-				}
-
-				base.IsPlaced = value;
-
-				if (IsPlaced)
-				{
-					if (Parent != null)
-					{
-						Parent.TouchMoved += DesktopOnTouchMoved;
-						Parent.TouchUp += DesktopTouchUp;
-					}
-					else
-					{
-						Desktop.TouchMoved += DesktopOnTouchMoved;
-						Desktop.TouchUp += DesktopTouchUp;
-					}
-				}
-			}
-		}
-
-		public event EventHandler<WindowClosingEventArgs> Closing;
+		public event EventHandler<CancellableEventArgs> Closing;
 		public event EventHandler Closed;
 
 		public Window(string styleName = Stylesheet.DefaultStyleName)
 		{
+			CloseKey = Keys.Escape;
+
 			IsModal = true;
+			IsDraggable = true;
 
 			InternalChild = new VerticalStackPanel();
 
@@ -215,6 +177,7 @@ namespace Myra.Graphics2D.UI
 			{
 				ColumnSpacing = 8
 			};
+			DragHandle = TitleGrid;
 
 			TitleGrid.ColumnsProportions.Add(new Proportion(ProportionType.Fill));
 			TitleGrid.ColumnsProportions.Add(new Proportion(ProportionType.Auto));
@@ -257,128 +220,19 @@ namespace Myra.Graphics2D.UI
 			Top = (ContainerBounds.Height - size.Y) / 2;
 		}
 
-		private void DesktopOnTouchMoved(object sender, EventArgs args)
-		{
-			if (_startPos == null)
-			{
-				return;
-			}
-
-			var position = new Point(Desktop.TouchPosition.X - _startPos.Value.X,
-				Desktop.TouchPosition.Y - _startPos.Value.Y);
-
-			if (position.X < 0)
-			{
-				position.X = 0;
-			}
-
-			if (Parent != null)
-			{
-				if (position.X + Bounds.Width > Parent.Bounds.Right)
-				{
-					position.X = Parent.Bounds.Right - Bounds.Width;
-				}
-			}
-			else
-			{
-				if (position.X + Bounds.Width > Desktop.InternalBounds.Right)
-				{
-					position.X = Desktop.InternalBounds.Right - Bounds.Width;
-				}
-			}
-
-			if (position.Y < 0)
-			{
-				position.Y = 0;
-			}
-
-			if (Parent != null)
-			{
-				if (position.Y + Bounds.Height > Parent.Bounds.Bottom)
-				{
-					position.Y = Parent.Bounds.Bottom - Bounds.Height;
-				}
-			}
-			else
-			{
-				if (position.Y + Bounds.Height > Desktop.InternalBounds.Bottom)
-				{
-					position.Y = Desktop.InternalBounds.Bottom - Bounds.Height;
-				}
-			}
-
-			Left = position.X;
-			Top = position.Y;
-		}
-
-		private void DesktopTouchUp(object sender, EventArgs args)
-		{
-			_startPos = null;
-		}
-
-		private void UpdateActiveWindow()
-		{
-			var widgets = Desktop.ChildrenCopy;
-			var lastWidget = widgets[widgets.Count - 1];
-			if (lastWidget != this)
-			{
-				// Make active window top
-				var activeIndex = widgets.IndexOf(this);
-				var lastIndex = widgets.IndexOf(lastWidget);
-
-				for (var i = activeIndex; i < lastIndex; ++i)
-				{
-					widgets[i] = widgets[i + 1];
-				}
-
-				widgets[lastIndex] = this;
-			}
-		}
-
-		public override void OnTouchUp()
-		{
-			base.OnTouchUp();
-
-			_startPos = null;
-		}
-
 		public override void OnTouchDown()
 		{
-			UpdateActiveWindow();
-
+			BringToFront();
 			base.OnTouchDown();
-
-			var x = Bounds.X;
-			var y = Bounds.Y;
-			var bounds = new Rectangle(x, y,
-				TitleGrid.Bounds.Right - x,
-				TitleGrid.Bounds.Bottom - y);
-			var touchPos = Desktop.TouchPosition;
-
-			if (CloseButton.Visible && CloseButton.Bounds.Contains(touchPos))
-			{
-				return;
-			}
-
-			if (bounds.Contains(touchPos))
-			{
-				_startPos = new Point(touchPos.X - ActualBounds.Location.X,
-					touchPos.Y - ActualBounds.Location.Y);
-			}
 		}
 
 		public override void OnKeyDown(Keys k)
 		{
-			base.OnKeyDown(k);
+			base.OnKeyDown(k);	
 
-			switch (k)
+			if (k == CloseKey)
 			{
-				case Keys.Escape:
-					if (CloseButton.Visible)
-					{
-						Close();
-					}
-					break;
+				Close();
 			}
 		}
 
@@ -397,8 +251,9 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		private void InternalShow(Point? position = null)
+		private void InternalShow(Desktop desktop, Point? position = null)
 		{
+			Desktop = desktop;
 			Desktop.Widgets.Add(this);
 
 			// Force mouse wheel focused to be set to the first appropriate widget in the next Desktop.UpdateLayout
@@ -412,18 +267,18 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public void Show(Point? position = null)
+		public void Show(Desktop desktop, Point? position = null)
 		{
 			IsModal = false;
-			InternalShow(position);
+			InternalShow(desktop, position);
 		}
 
-		public void ShowModal(Point? position = null)
+		public void ShowModal(Desktop desktop, Point? position = null)
 		{
 			IsModal = true;
-			_previousMouseWheelFocus = Desktop.FocusedMouseWheelWidget;
+			_previousMouseWheelFocus = desktop.FocusedMouseWheelWidget;
 
-			InternalShow(position);
+			InternalShow(desktop, position);
 		}
 
 		public virtual void Close()
@@ -431,7 +286,7 @@ namespace Myra.Graphics2D.UI
 			var ev = Closing;
 			if (ev != null)
 			{
-				var args = new WindowClosingEventArgs();
+				var args = new CancellableEventArgs();
 				ev(this, args);
 				if (args.Cancel)
 				{
@@ -446,8 +301,8 @@ namespace Myra.Graphics2D.UI
 
 			if (Desktop.Widgets.Contains(this))
 			{
-				Desktop.Widgets.Remove(this);
 				Desktop.FocusedMouseWheelWidget = _previousMouseWheelFocus;
+				Desktop.Widgets.Remove(this);
 			}
 			else
 			{
