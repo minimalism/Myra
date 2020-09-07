@@ -67,9 +67,9 @@ namespace Myra.Graphics2D.UI
 
 				base.Visible = value;
 
-				foreach (var item in ChildrenCopy)
+				foreach (var child in ChildrenCopy)
 				{
-					item.Visible = value;
+					child.ParentVisible = value;
 				}
 			}
 		}
@@ -120,6 +120,7 @@ namespace Myra.Graphics2D.UI
 			{
 				return;
 			}
+
 
 			_childrenCopy.Clear();
 
