@@ -627,6 +627,13 @@ namespace Myra.Graphics2D.UI
 					w.Desktop = null;
 				}
 			}
+			else if (args.Action == NotifyCollectionChangedAction.Reset)
+			{
+				foreach (Widget w in ChildrenCopy)
+				{
+					w.Desktop = null;
+				}
+			}
 			else throw new NotImplementedException(args.Action.ToString());
 
 			InvalidateLayout();

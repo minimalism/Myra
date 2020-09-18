@@ -70,6 +70,14 @@ namespace Myra.Graphics2D.UI
 					w.Parent = null;
 				}
 			}
+			else if (args.Action == NotifyCollectionChangedAction.Reset)
+			{
+				foreach (Widget w in ChildrenCopy)
+				{
+					w.Desktop = null;
+					w.Parent = null;
+				}
+			}
 			else throw new NotImplementedException(args.Action.ToString());
 
 			InvalidateChildren();

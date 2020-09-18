@@ -573,21 +573,21 @@ namespace Myra.Graphics2D.UI
 		[XmlIgnore]
 		[Browsable(false)]
 		public Widget DragHandle { get; set; }
-		
-		
+
+
 		[XmlIgnore]
 		[Browsable(false)]
 		private int RelativeLeft { get; set; }
-		
+
 		[XmlIgnore]
 		[Browsable(false)]
 		private int RelativeTop { get; set; }
-		
+
 		[XmlIgnore]
 		[Browsable(false)]
 
 		private int RelativeRight { get; set; }
-		
+
 		[XmlIgnore]
 		[Browsable(false)]
 		private int RelativeBottom { get; set; }
@@ -1059,7 +1059,7 @@ namespace Myra.Graphics2D.UI
 					pos = Vector2.Transform(pos, context.SpriteBatchBeginParams.TransformMatrix.Value);
 					size = Vector2.Transform(size, context.SpriteBatchBeginParams.TransformMatrix.Value);
 
-					newScissorRectangle = new Rectangle((int) pos.X, (int) pos.Y, (int) size.X, (int) size.Y);  
+					newScissorRectangle = new Rectangle((int)pos.X, (int)pos.Y, (int)size.X, (int)size.Y);
 				}
 
 				CrossEngineStuff.SetScissor(newScissorRectangle);
@@ -1320,7 +1320,7 @@ namespace Myra.Graphics2D.UI
 				_actualBounds = CalculateClientBounds(controlBounds);
 
 				Arrange();
-				
+
 				CalculateRelativePositions();
 			}
 			else
@@ -1339,7 +1339,7 @@ namespace Myra.Graphics2D.UI
 		{
 			RelativeLeft = Left - Bounds.X;
 			RelativeTop = Top - Bounds.Y;
-			
+
 			if (Parent != null)
 			{
 				RelativeRight = Left + Parent.Bounds.Width - Bounds.X;
@@ -1620,7 +1620,7 @@ namespace Myra.Graphics2D.UI
 					OnMouseLeft();
 				}
 			}
-			else if (Visible && Active && BorderBounds.Contains(Desktop.MousePosition))
+			else if (Desktop != null && Visible && Active && BorderBounds.Contains(Desktop.MousePosition))
 			{
 				OnMouseEntered();
 			}
@@ -1632,7 +1632,7 @@ namespace Myra.Graphics2D.UI
 					OnTouchLeft();
 				}
 			}
-			else if (Visible && Active && BorderBounds.Contains(Desktop.TouchPosition))
+			else if (Desktop != null && Visible && Active && BorderBounds.Contains(Desktop.TouchPosition))
 			{
 				OnTouchEntered();
 			}
@@ -1718,7 +1718,7 @@ namespace Myra.Graphics2D.UI
 
 			int newLeft = Left;
 			int newTop = Top;
-			
+
 			if (DragDirection.HasFlag(DragDirection.Horizontal))
 			{
 				newLeft = position.X;
@@ -1751,7 +1751,7 @@ namespace Myra.Graphics2D.UI
 			{
 				newTop = RelativeBottom - Bounds.Height;
 			}
-				
+
 			if (newLeft + Bounds.Width > RelativeRight)
 			{
 				newLeft = RelativeRight - Bounds.Width;
