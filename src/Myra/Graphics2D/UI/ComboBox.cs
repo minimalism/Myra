@@ -42,7 +42,7 @@ namespace Myra.Graphics2D.UI
 			get { return InternalChild.IsPressed; }
 		}
 
-		public override Desktop Desktop
+		public override Desktop? Desktop
 		{
 			get
 			{

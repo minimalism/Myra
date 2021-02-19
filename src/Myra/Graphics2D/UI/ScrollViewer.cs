@@ -244,7 +244,7 @@ namespace Myra.Graphics2D.UI
 
 		protected internal override bool MouseWheelFocusCanBeNull => false;
 
-		public override Desktop Desktop
+		public override Desktop? Desktop
 		{
 			get
 			{

@@ -74,7 +74,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public override Desktop Desktop 
+		public override Desktop? Desktop 
 		{
 			get
 			{

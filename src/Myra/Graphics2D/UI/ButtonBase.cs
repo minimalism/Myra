@@ -63,7 +63,7 @@ namespace Myra.Graphics2D.UI
 
 		internal bool ReleaseOnTouchLeft;
 
-		public override Desktop Desktop
+		public override Desktop? Desktop
 		{
 			get
 			{
