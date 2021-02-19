@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Reflection;
-using XNAssets;
+using AssetManagementBase;
+using AssetManagementBase.Utility;
 using Myra.Assets;
-using XNAssets.Utility;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-#else
+#elif STRIDE
 using Stride.Engine;
 using Stride.Graphics;
+#else
+using Myra.Platform;
 #endif
 
 namespace Myra
@@ -17,11 +19,15 @@ namespace Myra
 	public static class MyraEnvironment
 	{
 		private static AssetManager _defaultAssetManager;
-
 		private static bool _assetsLoadersUpdated = false;
-		private static Game _game;
 
 		public static event EventHandler GameDisposed;
+
+		public static int FontAtlasSize = 1024;
+
+#if MONOGAME || FNA || STRIDE
+
+		private static Game _game;
 
 		public static Game Game
 		{
@@ -56,22 +62,50 @@ namespace Myra
 
 				_game = value;
 
+				UpdateAssetManager();
+
 #if !STRIDE
 				if (_game != null)
 				{
 					_game.Disposed += GameOnDisposed;
 				}
 #endif
-
-				if (!_assetsLoadersUpdated)
-				{
-					// Use our own SpriteFontLoader that can use TextureRegion as backing image
-					AssetManager.SetAssetLoader(new SpriteFontLoader());
-
-					_assetsLoadersUpdated = true;
-				}
 			}
 		}
+
+		public static GraphicsDevice GraphicsDevice
+		{
+			get => Game.GraphicsDevice;
+		}
+#else
+
+		private static IMyraPlatform _platform;
+
+		public static IMyraPlatform Platform
+		{
+			get
+			{
+				if (_platform == null)
+				{
+					throw new Exception("MyraEnvironment.Platform is null. Please, set it before using Myra.");
+				}
+
+				return _platform;
+			}
+
+			set
+			{
+				if (value == null)
+				{
+					throw new ArgumentNullException(nameof(value));
+				}
+
+				_platform = value;
+
+				UpdateAssetManager();
+			}
+		}
+#endif
 
 		/// <summary>
 		/// Default Assets Manager
@@ -82,7 +116,7 @@ namespace Myra
 			{
 				if (_defaultAssetManager == null)
 				{
-					_defaultAssetManager = new AssetManager(GraphicsDevice, new FileAssetResolver(PathUtils.ExecutingAssemblyDirectory));
+					_defaultAssetManager = new AssetManager(new FileAssetResolver(PathUtils.ExecutingAssemblyDirectory));
 				}
 
 				return _defaultAssetManager;
@@ -95,6 +129,25 @@ namespace Myra
 		public static bool DrawTextGlyphsFrames { get; set; }
 		public static bool DisableClipping { get; set; }
 
+		private static void UpdateAssetManager()
+		{
+			if (_assetsLoadersUpdated)
+			{
+				return;
+			}
+
+#if MONOGAME || FNA
+			AssetManager.SetAssetLoader(new SoundEffectLoader());
+#endif
+			AssetManager.SetAssetLoader(new Texture2DLoader());
+			AssetManager.SetAssetLoader(new StaticSpriteFontLoader());
+			AssetManager.SetAssetLoader(new FontSystemLoader());
+			AssetManager.SetAssetLoader(new DynamicSpriteFontLoader());
+			AssetManager.SetAssetLoader(new SpriteFontBaseLoader());
+
+			_assetsLoadersUpdated = true;
+		}
+
 		private static void GameOnDisposed(object sender, EventArgs eventArgs)
 		{
 			DefaultAssets.Dispose();
@@ -103,14 +156,6 @@ namespace Myra
 			if (ev != null)
 			{
 				ev(null, EventArgs.Empty);
-			}
-		}
-
-		public static GraphicsDevice GraphicsDevice
-		{
-			get
-			{
-				return Game.GraphicsDevice;
 			}
 		}
 

@@ -1,9 +1,8 @@
-﻿using System.Reflection;
+﻿using AssetManagementBase;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Myra.Graphics2D.UI;
 using NUnit.Framework;
-using XNAssets;
 
 namespace Myra.Tests
 {
@@ -25,9 +24,9 @@ namespace Myra.Tests
 		public void LoadMMLWithExternalAssets()
 		{
 			ResourceAssetResolver assetResolver = new ResourceAssetResolver(typeof(MMLTests).Assembly, "Resources.");
-			AssetManager assetManager = new AssetManager(GraphicsDevice, assetResolver);
+			AssetManager assetManager = new AssetManager(assetResolver);
 
-			var mml = assetManager.Load<string>("GridWithExternalResources.xml");
+			var mml = assetManager.Load<string>("GridWithExternalResources.xmmp");
 
 			var project = Project.LoadFromXml(mml, assetManager);
 
@@ -39,14 +38,6 @@ namespace Myra.Tests
 			var label = (Label)project.Root.FindWidgetById("label");
 			Assert.IsNotNull(label);
 			Assert.IsNotNull(label.Font);
-			#if MONOGAME
-			var texture = label.Font.Texture;
-			#else
-			var fi = typeof(SpriteFont).GetField("textureValue", BindingFlags.NonPublic | BindingFlags.Instance);
-			var texture = (Texture2D) fi.GetValue(label.Font);
-			#endif
-			Assert.AreEqual(new Point(texture.Width, texture.Height), new Point(512, 512));
-			Assert.AreEqual(label.Font.Characters.Count, 191);
 		}
 	}
 }

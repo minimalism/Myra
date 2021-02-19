@@ -2,14 +2,16 @@
 using System.ComponentModel;
 using System.Xml.Serialization;
 using Myra.Graphics2D.UI.Styles;
-using Myra.Utility;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
 using Stride.Input;
+#else
+using System.Drawing;
+using Myra.Platform;
 #endif
 
 namespace Myra.Graphics2D.UI
@@ -230,7 +232,7 @@ namespace Myra.Graphics2D.UI
 			p.X -= bounds.X;
 			p.Y -= bounds.Y;
 
-			var lineHeight = CrossEngineStuff.LineSpacing(ListBoxStyle.ListItemStyle.LabelStyle.Font);
+			var lineHeight = ListBoxStyle.ListItemStyle.LabelStyle.Font.FontSize;
 
 			var sp = InternalChild.ScrollPosition;
 

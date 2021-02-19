@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
+using Myra.Utility;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
+#else
+using System.Drawing;
 #endif
 
 namespace Myra
@@ -112,7 +115,7 @@ namespace Myra
 						}
 					}
 
-					return new Color(r, g, b, a);
+					return CreateColor(r, g, b, a);
 				}
 			}
 			else
@@ -125,6 +128,15 @@ namespace Myra
 			}
 
 			return null;
+		}
+
+		public static Color CreateColor(int r, int g, int b, int a = 255)
+		{
+#if MONOGAME || FNA || STRIDE
+			return new Color((byte)r, (byte)g, (byte)b, (byte)a);
+#else
+			return Color.FromArgb(a, r, g, b);
+#endif
 		}
 	}
 }

@@ -1,15 +1,23 @@
-﻿#if !STRIDE
+﻿#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
-using Stride.Graphics;
+#else
+using System.Drawing;
 #endif
 
 namespace Myra.Graphics2D
 {
 	public interface IBrush
 	{
-		void Draw(SpriteBatch batch, Rectangle dest, Color color);
+		void Draw(RenderContext context, Rectangle dest, Color color);
+	}
+
+	public static class IBrushExtensions
+	{
+		public static void Draw(this IBrush brush, RenderContext context, Rectangle dest)
+		{
+			brush.Draw(context, dest, Color.White);
+		}
 	}
 }

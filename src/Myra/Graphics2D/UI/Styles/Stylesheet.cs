@@ -4,14 +4,18 @@ using System.Xml.Serialization;
 using System.Xml.Linq;
 using Myra.MML;
 using System.Collections;
-using XNAssets;
+using AssetManagementBase;
+using FontStashSharp;
+using Myra.Graphics2D.TextureAtlases;
+using Myra.Graphics2D.Brushes;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
-using Stride.Graphics;
+#else
+using System.Drawing;
+using SolidBrush = Myra.Graphics2D.Brushes.SolidBrush;
 #endif
 
 namespace Myra.Graphics2D.UI.Styles
@@ -72,6 +76,9 @@ namespace Myra.Graphics2D.UI.Styles
 		private readonly Dictionary<string, MenuStyle> _horizontalMenuStyles = new Dictionary<string, MenuStyle>();
 		private readonly Dictionary<string, MenuStyle> _verticalMenuStyles = new Dictionary<string, MenuStyle>();
 		private readonly Dictionary<string, WindowStyle> _windowStyles = new Dictionary<string, WindowStyle>();
+
+		public TextureRegionAtlas Atlas { get; private set; }
+		public Dictionary<string, SpriteFontBase> Fonts { get; private set; }
 
 		public DesktopStyle DesktopStyle
 		{
@@ -567,8 +574,8 @@ namespace Myra.Graphics2D.UI.Styles
 		}
 
 		public static Stylesheet LoadFromSource(string stylesheetXml,
-			Func<string, IBrush> textureGetter,
-			Func<string, SpriteFont> fontGetter)
+			TextureRegionAtlas textureRegionAtlas,
+			Dictionary<string, SpriteFontBase> fonts)
 		{
 			var xDoc = XDocument.Parse(stylesheetXml);
 
@@ -576,7 +583,7 @@ namespace Myra.Graphics2D.UI.Styles
 			var colorsNode = xDoc.Root.Element("Colors");
 			if (colorsNode != null)
 			{
-				foreach(var el in colorsNode.Elements())
+				foreach (var el in colorsNode.Elements())
 				{
 					var color = ColorStorage.FromName(el.Attribute("Value").Value);
 					if (color != null)
@@ -586,24 +593,47 @@ namespace Myra.Graphics2D.UI.Styles
 				}
 			}
 
-			Func<Type, string, object> resourceGetter = (t, s) =>
+			Func<Type, string, object> resourceGetter = (t, name) =>
 			{
 				if (typeof(IBrush).IsAssignableFrom(t))
 				{
-					return textureGetter(s);
-				} else if (t == typeof(SpriteFont))
+					TextureRegion region;
+
+					if (!textureRegionAtlas.Regions.TryGetValue(name, out region))
+					{
+						var color = ColorStorage.FromName(name);
+						if (color != null)
+						{
+							return new SolidBrush(color.Value);
+						}
+					}
+					else
+					{
+						return region;
+					}
+
+					throw new Exception(string.Format("Could not find parse IBrush '{0}'", name));
+				}
+				else if (t == typeof(SpriteFontBase))
 				{
-					return fontGetter(s);
+					return fonts[name];
 				}
 
 				throw new Exception(string.Format("Type {0} isn't supported", t.Name));
 			};
 
-			var result = new Stylesheet();
+			var result = new Stylesheet
+			{
+				Atlas = textureRegionAtlas,
+				Fonts = fonts
+			};
 
 			var loadContext = new LoadContext
 			{
-				Namespace = typeof(WidgetStyle).Namespace,
+				Namespaces = new[] 
+				{
+					typeof(WidgetStyle).Namespace
+				},
 				ResourceGetter = resourceGetter,
 				NodesToIgnore = new HashSet<string>(new[] { "Designer", "Colors", "Fonts" }),
 				LegacyClassNames = LegacyClassNames,
@@ -634,7 +664,7 @@ namespace Myra.Graphics2D.UI.Styles
 			var dict = (IDictionary)property.GetValue(this);
 
 			var result = new List<string>();
-			foreach(var k in dict.Keys)
+			foreach (var k in dict.Keys)
 			{
 				result.Add((string)k);
 			}

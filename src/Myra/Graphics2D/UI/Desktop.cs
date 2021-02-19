@@ -2,19 +2,21 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Linq;
 using Myra.Graphics2D.UI.Styles;
 using Myra.Utility;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Input.Touch;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
-using Stride.Graphics;
 using Stride.Input;
+#else
+using System.Drawing;
+using Myra.Platform;
+using System.Numerics;
+using Matrix = System.Numerics.Matrix3x2;
 #endif
 
 namespace Myra.Graphics2D.UI
@@ -31,6 +33,7 @@ namespace Myra.Graphics2D.UI
 	public class Desktop
 	{
 		public const int DoubleClickIntervalInMs = 500;
+		public const int DoubleClickRadius = 2;
 
 		private RenderContext _renderContext;
 
@@ -42,19 +45,19 @@ namespace Myra.Graphics2D.UI
 		private DateTime? _lastKeyDown;
 		private int _keyDownCount = 0;
 		private MouseInfo _lastMouseInfo;
-		private IReadOnlyCollection<Keys> _downKeys, _lastDownKeys;
+		private readonly bool[] _downKeys = new bool[0xff], _lastDownKeys = new bool[0xff];
 		private Widget _previousKeyboardFocus;
 		private Widget _previousMouseWheelFocus;
-#if !STRIDE
+#if MONOGAME || FNA || PLATFORM_AGNOSTIC
 		private TouchCollection _oldTouchState;
 #endif
 		private Widget _scheduleMouseWheelFocus;
 		private bool _isTouchDown;
-		private Point _previousMousePosition, _mousePosition, _touchPosition;
+		private Point _previousMousePosition, _mousePosition, _previousTouchPosition, _touchPosition;
 		private bool _contextMenuShown = false;
 		private bool _keyboardFocusSet = false;
 		private bool _mouseWheelFocusSet = false;
-#if MONOGAME
+#if MONOGAME || PLATFORM_AGNOSTIC
 		public bool HasExternalTextInput = false;
 #endif
 
@@ -90,7 +93,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public IReadOnlyCollection<Keys> DownKeys
+		public bool[] DownKeys
 		{
 			get
 			{
@@ -142,6 +145,8 @@ namespace Myra.Graphics2D.UI
 
 			private set
 			{
+				_previousTouchPosition = _touchPosition;
+
 				if (value == _touchPosition)
 				{
 					return;
@@ -161,7 +166,7 @@ namespace Myra.Graphics2D.UI
 			get; set;
 		}
 
-		public Func<IReadOnlyCollection<Keys>> DownKeysGetter
+		public Action<bool[]> DownKeysGetter
 		{
 			get; set;
 		}
@@ -255,23 +260,9 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		/// <summary>
-		/// Parameters passed to SpriteBatch.Begin
-		/// </summary>
-		public SpriteBatchBeginParams SpriteBatchBeginParams
-		{
-			get
-			{
-				return RenderContext.SpriteBatchBeginParams;
-			}
-
-			set
-			{
-				RenderContext.SpriteBatchBeginParams = value;
-			}
-		}
-
 		public float Opacity { get; set; }
+
+		public Matrix? Transform { get => RenderContext.Transform; set => RenderContext.Transform = value; }
 
 		public bool IsMouseOverGUI
 		{
@@ -293,7 +284,7 @@ namespace Myra.Graphics2D.UI
 		{
 			get
 			{
-				return _downKeys.Contains(Keys.LeftShift) || _downKeys.Contains(Keys.RightShift);
+				return IsKeyDown(Keys.LeftShift) || IsKeyDown(Keys.RightShift);
 			}
 		}
 
@@ -302,9 +293,9 @@ namespace Myra.Graphics2D.UI
 			get
 			{
 #if !STRIDE
-				return _downKeys.Contains(Keys.LeftControl) || _downKeys.Contains(Keys.RightControl);
+				return IsKeyDown(Keys.LeftControl) || IsKeyDown(Keys.RightControl);
 #else
-				return _downKeys.Contains(Keys.LeftCtrl) || _downKeys.Contains(Keys.RightCtrl);
+				return IsKeyDown(Keys.LeftCtrl) || IsKeyDown(Keys.RightCtrl);
 #endif
 			}
 		}
@@ -314,9 +305,9 @@ namespace Myra.Graphics2D.UI
 			get
 			{
 #if !STRIDE
-				return _downKeys.Contains(Keys.LeftAlt) || _downKeys.Contains(Keys.RightAlt);
+				return IsKeyDown(Keys.LeftAlt) || IsKeyDown(Keys.RightAlt);
 #else
-				return _downKeys.Contains(Keys.LeftAlt) || _downKeys.Contains(Keys.RightAlt);
+				return IsKeyDown(Keys.LeftAlt) || IsKeyDown(Keys.RightAlt);
 #endif
 			}
 		}
@@ -375,7 +366,7 @@ namespace Myra.Graphics2D.UI
 		{
 			get
 			{
-				return (MenuBar != null && (MenuBar.OpenMenuItem != null || IsAltDown));
+				return MenuBar != null && (MenuBar.OpenMenuItem != null || IsAltDown);
 			}
 		}
 
@@ -420,12 +411,17 @@ namespace Myra.Graphics2D.UI
 #endif
 		}
 
-#if !STRIDE
+		public bool IsKeyDown(Keys keys)
+		{
+			return _downKeys[(int)keys];
+		}
+
 		public MouseInfo DefaultMouseInfoGetter()
 		{
+#if MONOGAME || FNA
 			var state = Mouse.GetState();
 
-			var result = new MouseInfo
+			return new MouseInfo
 			{
 				Position = new Point(state.X, state.Y),
 				IsLeftButtonDown = state.LeftButton == ButtonState.Pressed,
@@ -433,22 +429,12 @@ namespace Myra.Graphics2D.UI
 				IsRightButtonDown = state.RightButton == ButtonState.Pressed,
 				Wheel = state.ScrollWheelValue
 			};
-
-			return result;
-		}
-
-		public IReadOnlyCollection<Keys> DefaultDownKeysGetter()
-		{
-			return Keyboard.GetState().GetPressedKeys();
-		}
-#else
-		public MouseInfo DefaultMouseInfoGetter()
-		{
+#elif STRIDE
 			var input = MyraEnvironment.Game.Input;
 
 			var v = input.AbsoluteMousePosition;
 
-			var result = new MouseInfo
+			return new MouseInfo
 			{
 				Position = new Point((int)v.X, (int)v.Y),
 				IsLeftButtonDown = input.IsMouseButtonDown(MouseButton.Left),
@@ -456,17 +442,29 @@ namespace Myra.Graphics2D.UI
 				IsRightButtonDown = input.IsMouseButtonDown(MouseButton.Right),
 				Wheel = input.MouseWheelDelta
 			};
-
-			return result;
-		}
-
-		public IReadOnlyCollection<Keys> DefaultDownKeysGetter()
-		{
-			var input = MyraEnvironment.Game.Input;
-
-			return input.Keyboard.DownKeys;
-		}
+#else
+			return MyraEnvironment.Platform.GetMouseInfo();
 #endif
+		}
+
+		public void DefaultDownKeysGetter(bool[] keys)
+		{
+#if MONOGAME || FNA
+			var state = Keyboard.GetState();
+			for (var i = 0; i < keys.Length; ++i)
+			{
+				keys[i] = state.IsKeyDown((Keys)i);
+			}
+#elif STRIDE
+			var input = MyraEnvironment.Game.Input;
+			for (var i = 0; i < keys.Length; ++i)
+			{
+				keys[i] = input.IsKeyDown((Keys)i);
+			}
+#else
+			MyraEnvironment.Platform.SetKeysDown(keys);
+#endif
+		}
 
 		public Widget GetChild(int index)
 		{
@@ -475,7 +473,9 @@ namespace Myra.Graphics2D.UI
 
 		private void HandleDoubleClick()
 		{
-			if ((DateTime.Now - _lastTouchDown).TotalMilliseconds < DoubleClickIntervalInMs)
+			if ((DateTime.Now - _lastTouchDown).TotalMilliseconds < DoubleClickIntervalInMs &&
+				Math.Abs(_touchPosition.X - _previousTouchPosition.X) <= DoubleClickRadius &&
+				Math.Abs(_touchPosition.Y - _previousTouchPosition.Y) <= DoubleClickRadius)
 			{
 				TouchDoubleClick.Invoke();
 
@@ -644,15 +644,17 @@ namespace Myra.Graphics2D.UI
 		{
 			if (_renderContext == null)
 			{
-				var spriteBatch = new SpriteBatch(MyraEnvironment.GraphicsDevice);
-				_renderContext = new RenderContext
-				{
-					Batch = spriteBatch
-				};
+				_renderContext = new RenderContext();
 
-				if(MyraEnvironment.LayoutScale.HasValue)
-                {
-					_renderContext.SpriteBatchBeginParams.TransformMatrix = Matrix.CreateScale(MyraEnvironment.LayoutScale.Value);
+				if (MyraEnvironment.LayoutScale.HasValue)
+				{
+#if MONOGAME || FNA
+					_renderContext.Transform = Matrix.CreateScale(MyraEnvironment.LayoutScale.Value);
+#elif STRIDE
+					_renderContext.Transform = Matrix.Scaling(MyraEnvironment.LayoutScale.Value);
+#else
+					_renderContext.Transform = Matrix3x2.CreateScale(MyraEnvironment.LayoutScale.Value);
+#endif
 				}
 			}
 		}
@@ -661,18 +663,18 @@ namespace Myra.Graphics2D.UI
 		{
 			EnsureRenderContext();
 
-			var oldScissorRectangle = CrossEngineStuff.GetScissor();
+			var oldScissorRectangle = _renderContext.Scissor;
 
 			_renderContext.Begin();
 
-			CrossEngineStuff.SetScissor(InternalBounds);
+			_renderContext.Scissor = InternalBounds;
 			_renderContext.View = InternalBounds;
 			_renderContext.Opacity = Opacity;
 
 			if (Stylesheet.Current.DesktopStyle != null &&
 				Stylesheet.Current.DesktopStyle.Background != null)
 			{
-				_renderContext.Draw(Stylesheet.Current.DesktopStyle.Background, InternalBounds);
+				Stylesheet.Current.DesktopStyle.Background.Draw(_renderContext, InternalBounds);
 			}
 
 			foreach (var widget in ChildrenCopy)
@@ -685,7 +687,7 @@ namespace Myra.Graphics2D.UI
 
 			_renderContext.End();
 
-			CrossEngineStuff.SetScissor(oldScissorRectangle);
+			_renderContext.Scissor = oldScissorRectangle;
 		}
 
 		public void Render()
@@ -900,10 +902,15 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-#if !STRIDE
+#if MONOGAME || FNA || PLATFORM_AGNOSTIC
 		public void UpdateTouch()
 		{
+#if MONOGAME || FNA
 			var touchState = TouchPanel.GetState();
+#else
+			var touchState = MyraEnvironment.Platform.GetTouchState();
+#endif
+
 			if (!touchState.IsConnected)
 			{
 				return;
@@ -913,12 +920,12 @@ namespace Myra.Graphics2D.UI
 			{
 				var pos = touchState[0].Position;
 
-				if (SpriteBatchBeginParams.TransformMatrix != null)
+				if (_renderContext.Transform != null)
 				{
 					// Apply transform
 					var t = Vector2.Transform(
 						new Vector2(pos.X, pos.Y),
-						SpriteBatchBeginParams.InverseTransform);
+						_renderContext.InverseTransform);
 
 					pos = new Vector2((int)t.X, (int)t.Y);
 				}
@@ -963,12 +970,11 @@ namespace Myra.Graphics2D.UI
 			var mouseInfo = MouseInfoGetter();
 			var mousePosition = mouseInfo.Position;
 
-			if (SpriteBatchBeginParams.TransformMatrix != null)
+			EnsureRenderContext();
+			if (_renderContext.Transform != null)
 			{
 				// Apply transform
-				var t = Vector2.Transform(
-					new Vector2(mousePosition.X, mousePosition.Y),
-					SpriteBatchBeginParams.InverseTransform);
+				var t = Vector2.Transform(new Vector2(mousePosition.X, mousePosition.Y), _renderContext.InverseTransform);
 
 				mousePosition = new Point((int)t.X, (int)t.Y);
 			}
@@ -1008,44 +1014,39 @@ namespace Myra.Graphics2D.UI
 				return;
 			}
 
-			_downKeys = DownKeysGetter();
+			DownKeysGetter(_downKeys);
 
-			if (_downKeys != null && _lastDownKeys != null)
+			var now = DateTime.Now;
+			for(var i = 0; i < _downKeys.Length; ++i)
 			{
-				var now = DateTime.Now;
-				foreach (var key in _downKeys)
+				var key = (Keys)i;
+				if (_downKeys[i] && !_lastDownKeys[i])
 				{
-					if (!_lastDownKeys.Contains(key))
+					if (key == Keys.Tab)
 					{
-						if (key == Keys.Tab)
-						{
-							FocusNextWidget();
-						}
-
-						KeyDownHandler?.Invoke(key);
-
-						_lastKeyDown = now;
-						_keyDownCount = 0;
+						FocusNextWidget();
 					}
-				}
 
-				foreach (var key in _lastDownKeys)
+					KeyDownHandler?.Invoke(key);
+
+					_lastKeyDown = now;
+					_keyDownCount = 0;
+				} else if (!_downKeys[i] && _lastDownKeys[i])
 				{
-					if (!_downKeys.Contains(key))
+					// Key had been released
+					KeyUp.Invoke(key);
+					if (_focusedKeyboardWidget != null && _focusedKeyboardWidget.Active)
 					{
-						// Key had been released
-						KeyUp.Invoke(key);
-						if (_focusedKeyboardWidget != null && _focusedKeyboardWidget.Active)
-						{
-							_focusedKeyboardWidget.OnKeyUp(key);
-						}
-
-						_lastKeyDown = null;
-						_keyDownCount = 0;
+						_focusedKeyboardWidget.OnKeyUp(key);
 					}
-					else if (_lastKeyDown != null &&
-					  ((_keyDownCount == 0 && (now - _lastKeyDown.Value).TotalMilliseconds > RepeatKeyDownStartInMs) ||
-					  (_keyDownCount > 0 && (now - _lastKeyDown.Value).TotalMilliseconds > RepeatKeyDownInternalInMs)))
+
+					_lastKeyDown = null;
+					_keyDownCount = 0;
+				} else if (_downKeys[i] && _lastDownKeys[i])
+				{
+					if (_lastKeyDown != null &&
+									  ((_keyDownCount == 0 && (now - _lastKeyDown.Value).TotalMilliseconds > RepeatKeyDownStartInMs) ||
+									  (_keyDownCount > 0 && (now - _lastKeyDown.Value).TotalMilliseconds > RepeatKeyDownInternalInMs)))
 					{
 						KeyDownHandler?.Invoke(key);
 
@@ -1055,7 +1056,7 @@ namespace Myra.Graphics2D.UI
 				}
 			}
 
-			_lastDownKeys = _downKeys.ToArray();
+			Array.Copy(_downKeys, _lastDownKeys, _downKeys.Length);
 		}
 
 		private void FocusNextWidget()
@@ -1119,7 +1120,7 @@ namespace Myra.Graphics2D.UI
 			UpdateMouseInput();
 			UpdateKeyboardInput();
 
-#if !STRIDE
+#if MONOGAME || FNA
 			try
 			{
 				UpdateTouch();
@@ -1140,35 +1141,25 @@ namespace Myra.Graphics2D.UI
 			}
 			else
 			{
-				// Small workaround: if key is escape  active widget is window
-				// Send it there
-				var topWidget = GetTopWidget();
-				var asWindow = topWidget as Window;
-				if (asWindow != null)
-				{
-					if (key == asWindow.CloseKey)
-					{
-						asWindow.OnKeyDown(key);
-					}
-
-					var asDialog = asWindow as Dialog;
-					if (asDialog != null && key == asDialog.ConfirmKey)
-					{
-						// Dialog also always receives Enter (Ok)
-						asWindow.OnKeyDown(key);
-					}
-				}
-
 				if (_focusedKeyboardWidget != null && _focusedKeyboardWidget.Active)
 				{
 					_focusedKeyboardWidget.OnKeyDown(key);
 
 #if STRIDE
-					var ch = key.ToChar(_downKeys.Contains(Keys.LeftShift) ||
-										_downKeys.Contains(Keys.RightShift));
+					var ch = key.ToChar(IsKeyDown(Keys.LeftShift) ||
+										IsKeyDown(Keys.RightShift));
 					if (ch != null)
 					{
 						_focusedKeyboardWidget.OnChar(ch.Value);
+					}
+#elif MONOGAME || PLATFORM_AGNOSTIC
+					if (!HasExternalTextInput && !IsControlDown && !IsAltDown)
+					{
+						var c = key.ToChar(IsShiftDown);
+						if (c != null)
+						{
+							OnChar(c.Value);
+						}
 					}
 #endif
 				}
@@ -1178,17 +1169,6 @@ namespace Myra.Graphics2D.UI
 			{
 				HideContextMenu();
 			}
-
-#if MONOGAME
-			if (!HasExternalTextInput && !IsControlDown && !IsAltDown)
-			{
-				var c = key.ToChar(IsShiftDown);
-				if (c != null)
-				{
-					OnChar(c.Value);
-				}
-			}
-#endif
 		}
 
 		public void OnChar(char c)
@@ -1262,7 +1242,7 @@ namespace Myra.Graphics2D.UI
 
 		public static Rectangle DefaultBoundsFetcher()
 		{
-			var size = MyraEnvironment.GraphicsDevice.ViewSize();
+			var size = CrossEngineStuff.ViewSize;
 			return new Rectangle(0, 0, size.X, size.Y);
 		}
 	}

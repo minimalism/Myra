@@ -1,13 +1,12 @@
-﻿using Myra.Utility;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
-using Stride.Graphics;
+#else
+using System.Drawing;
+using System.Numerics;
 #endif
 
 namespace Myra.Graphics2D.Text
@@ -92,7 +91,7 @@ namespace Myra.Graphics2D.Text
 			else return null;
 		}
 
-		public Color Draw(SpriteBatch batch, Point pos, Color color, bool useChunkColor, float opacity = 1.0f)
+		public Color Draw(RenderContext context, Vector2 pos, Color color, bool useChunkColor)
 		{
 			foreach (var chunk in Chunks)
 			{
@@ -101,7 +100,7 @@ namespace Myra.Graphics2D.Text
 					color = chunk.Color.Value;
 				}
 
-				chunk.Draw(batch, pos, color, opacity);
+				chunk.Draw(context, pos, color);
 				pos.X += chunk.Size.X;
 			}
 

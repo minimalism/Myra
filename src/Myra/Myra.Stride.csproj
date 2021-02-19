@@ -1,26 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Authors>MyraTeam</Authors>
-    <Product>Myra</Product>
-    <Description>UI Library for MonoGame, FNA and Stride</Description>
-    <PackageLicenseUrl>https://en.wikipedia.org/wiki/MIT_License</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/rds1983/Myra</PackageProjectUrl>
-    <AssemblyName>Myra</AssemblyName>
-    <RootNamespace>Myra</RootNamespace>
-    <Version>1.0.0.0</Version>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <DefineConstants>$(DefineConstants);STRIDE</DefineConstants>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>Myra</AssemblyName>
     <PackageId>Myra.Stride</PackageId>
     <OutputPath>bin\Stride\$(Configuration)</OutputPath>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\**\*.*" />
-  </ItemGroup>  
- 
+  </ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="XNAssets.Stride" Version="0.5.0.10" />
+    <Compile Remove="Platform\**\*.*" />
+  </ItemGroup>  
+
+  <ItemGroup>
+    <PackageReference Include="AssetManagementBase" Version="0.5.2" />
+    <PackageReference Include="FontStashSharp.Stride" Version="0.9.1.1" />
     <PackageReference Include="info.lundin.math.dll" Version="1.2.6" />
   </ItemGroup>  
 </Project>

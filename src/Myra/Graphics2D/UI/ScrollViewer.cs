@@ -5,10 +5,12 @@ using Myra.Utility;
 using System.Xml.Serialization;
 using Myra.Attributes;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
+#else
+using System.Drawing;
 #endif
 
 namespace Myra.Graphics2D.UI
@@ -31,7 +33,7 @@ namespace Myra.Graphics2D.UI
 			{
 				if (InternalChild == null)
 				{
-					return Point.Zero;
+					return Mathematics.PointZero;
 				}
 
 				var bounds = ActualBounds;
@@ -62,7 +64,7 @@ namespace Myra.Graphics2D.UI
 			{
 				if (InternalChild == null)
 				{
-					return Point.Zero;
+					return Mathematics.PointZero;
 				}
 
 				return new Point(-InternalChild.Left, -InternalChild.Top);
@@ -86,7 +88,7 @@ namespace Myra.Graphics2D.UI
 				var sp = ScrollPosition;
 				var m = ScrollMaximum;
 
-				var result = Point.Zero;
+				var result = Mathematics.PointZero;
 				if (m.X > 0)
 				{
 					result.X = sp.X * _thumbMaximumX / m.X;
@@ -445,24 +447,24 @@ namespace Myra.Graphics2D.UI
 			{
 				if (HorizontalScrollBackground != null)
 				{
-					context.Draw(HorizontalScrollBackground, _horizontalScrollbarFrame);
+					HorizontalScrollBackground.Draw(context, _horizontalScrollbarFrame);
 				}
 
 				var r = _horizontalScrollbarThumb;
 				r.X += thumbPosition.X;
-				context.Draw(HorizontalScrollKnob, r);
+				HorizontalScrollKnob.Draw(context, r);
 			}
 
 			if (_verticalScrollingOn && ShowVerticalScrollBar)
 			{
 				if (VerticalScrollBackground != null)
 				{
-					context.Draw(VerticalScrollBackground, _verticalScrollbarFrame);
+					VerticalScrollBackground.Draw(context, _verticalScrollbarFrame);
 				}
 
 				var r = _verticalScrollbarThumb;
 				r.Y += thumbPosition.Y;
-				context.Draw(VerticalScrollKnob, r);
+				VerticalScrollKnob.Draw(context, r);
 			}
 		}
 
@@ -480,7 +482,7 @@ namespace Myra.Graphics2D.UI
 		{
 			if (InternalChild == null)
 			{
-				return Point.Zero;
+				return Mathematics.PointZero;
 			}
 
 			var measureSize = InternalChild.Measure(availableSize);
@@ -631,7 +633,7 @@ namespace Myra.Graphics2D.UI
 
 		public void ResetScroll()
 		{
-			ScrollPosition = Point.Zero;
+			ScrollPosition = Mathematics.PointZero;
 		}
 
 		private void DesktopTouchMoved(object sender, EventArgs args)

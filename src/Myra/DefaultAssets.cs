@@ -1,17 +1,17 @@
 ﻿using Myra.Graphics2D.TextureAtlases;
 using Myra.Graphics2D.UI.Styles;
+using AssetManagementBase;
+using Myra.Assets;
 using Myra.Utility;
-using XNAssets;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-#else
-using SpriteFontPlus;
+#elif STRIDE
 using Stride.Core.Mathematics;
-using Stride.Graphics;
 using Texture2D = Stride.Graphics.Texture;
-using RasterizerState = Stride.Graphics.RasterizerStateDescription;
+#else
+using System.Drawing;
 #endif
 
 namespace Myra
@@ -19,14 +19,15 @@ namespace Myra
 	public static class DefaultAssets
 	{
 		private static AssetManager _assetManager;
-		private static SpriteFont _font;
-		private static SpriteFont _fontSmall;
 		private static TextureRegionAtlas _uiTextureRegionAtlas;
 		private static Stylesheet _uiStylesheet;
-		private static Texture2D _uiBitmap;
-		private static RasterizerState _uiRasterizerState;
-		private static Texture2D _white;
 		private static TextureRegion _whiteRegion;
+
+#if MONOGAME || FNA || STRIDE
+		private static Texture2D _whiteTexture;
+#else
+		private static object _whiteTexture;
+#endif
 
 		private static AssetManager AssetManager
 		{
@@ -34,24 +35,35 @@ namespace Myra
 			{
 				if (_assetManager == null)
 				{
-					_assetManager = new AssetManager(MyraEnvironment.GraphicsDevice, new ResourceAssetResolver(typeof(DefaultAssets).Assembly, "Resources."));
+					_assetManager = new AssetManager(new ResourceAssetResolver(typeof(DefaultAssets).Assembly, "Resources."));
 				}
 
 				return _assetManager;
 			}
 		}
 
-		public static Texture2D White
+#if MONOGAME || FNA || STRIDE
+		public static Texture2D WhiteTexture
+#else
+		public static object WhiteTexture
+#endif
 		{
 			get
 			{
-				if (_white == null)
+				if (_whiteTexture == null)
 				{
-					_white = CrossEngineStuff.CreateTexture2D(1, 1);
-					CrossEngineStuff.SetData(_white, new[] {Color.White});
+#if MONOGAME || FNA || STRIDE
+					var texture = CrossEngineStuff.CreateTexture(MyraEnvironment.GraphicsDevice, 1, 1);
+					CrossEngineStuff.SetTextureData(texture, new Rectangle(0, 0, 1, 1), new byte[] { 255, 255, 255, 255 });
+#else
+					var texture = MyraEnvironment.Platform.CreateTexture(1, 1);
+					MyraEnvironment.Platform.SetTextureData(texture, new Rectangle(0, 0, 1, 1), new byte[] { 255, 255, 255, 255 });
+#endif
+
+					_whiteTexture = texture;
 				}
 
-				return _white;
+				return _whiteTexture;
 			}
 		}
 
@@ -65,34 +77,6 @@ namespace Myra
 				}
 
 				return _whiteRegion;
-			}
-		}
-
-		public static SpriteFont Font
-		{
-			get
-			{
-				if (_font != null)
-				{
-					return _font;
-				}
-
-				_font = AssetManager.Load<SpriteFont>("default_font.fnt");
-				return _font;
-			}
-		}
-
-		public static SpriteFont FontSmall
-		{
-			get
-			{
-				if (_fontSmall != null)
-				{
-					return _fontSmall;
-				}
-
-				_fontSmall = AssetManager.Load<SpriteFont>("default_font_small.fnt");
-				return _fontSmall;
 			}
 		}
 
@@ -119,53 +103,13 @@ namespace Myra
 					return _uiStylesheet;
 				}
 
-				_uiStylesheet = AssetManager.Load<Stylesheet>("default_ui_skin.xml");
+				_uiStylesheet = AssetManager.Load<Stylesheet>("default_ui_skin.xmms");
 				return _uiStylesheet;
 			}
 		}
 
-		public static Texture2D UIBitmap
-		{
-			get
-			{
-				if (_uiBitmap != null)
-				{
-					return _uiBitmap;
-				}
-
-				_uiBitmap = AssetManager.Load<Texture2D>("default_ui_skin_atlas.png");
-				return _uiBitmap;
-			}
-		}
-
-		public static RasterizerState UIRasterizerState
-		{
-			get
-			{
-				if (_uiRasterizerState != null)
-				{
-					return _uiRasterizerState;
-				}
-
-				_uiRasterizerState = new RasterizerState
-				{
-					ScissorTestEnable = true
-				};
-				return _uiRasterizerState;
-			}
-		}
-
-		static DefaultAssets()
-		{
-#if STRIDE
-			BMFontLoader.GraphicsDevice = MyraEnvironment.GraphicsDevice;
-#endif
-		}
-
 		internal static void Dispose()
 		{	
-			_font = null;
-			_fontSmall = null;
 			_uiTextureRegionAtlas = null;
 			_uiStylesheet = null;
 			Stylesheet.Current = null;
@@ -177,19 +121,7 @@ namespace Myra
 			}
 
 			_whiteRegion = null;
-			if (_white != null)
-			{
-				_white.Dispose();
-				_white = null;
-			}
-		
-#if !STRIDE
-			if (_uiRasterizerState != null)
-			{
-				_uiRasterizerState.Dispose();
-				_uiRasterizerState = null;
-			}
-#endif
+			_whiteTexture = null;
 		}
 	}
 }

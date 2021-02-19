@@ -1,22 +1,18 @@
 ﻿using Myra.Graphics2D.TextureAtlases;
-using XNAssets;
-using SpriteFontPlus;
-
-#if !STRIDE
-using Microsoft.Xna.Framework.Graphics;
-#else
-using Stride.Graphics;
-#endif
+using AssetManagementBase;
+using FontStashSharp;
+using TextureWithOffset = FontStashSharp.TextureWithOffset;
 
 namespace Myra.Assets
 {
-	internal class SpriteFontLoader : IAssetLoader<SpriteFont>
+	internal class StaticSpriteFontLoader : IAssetLoader<StaticSpriteFont>
 	{
-		public SpriteFont Load(AssetLoaderContext context, string assetName)
+		public StaticSpriteFont Load(AssetLoaderContext context, string assetName)
 		{
 			var fontData = context.Load<string>(assetName);
 
-			return BMFontLoader.Load(fontData, name => TextureGetter(context, name));
+			return StaticSpriteFont.FromBMFont(fontData,
+						name => TextureGetter(context, name));
 		}
 
 		private TextureWithOffset TextureGetter(AssetLoaderContext context, string name)

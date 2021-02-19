@@ -1,15 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using Myra.Graphics2D.UI.Styles;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
 using Stride.Input;
+#else
+using System.Drawing;
+using Myra.Platform;
 #endif
 
 namespace Myra.Graphics2D.UI
@@ -337,12 +339,12 @@ namespace Myra.Graphics2D.UI
 
 			if (Active && HoverRow != null && HoverRow != SelectedRow && SelectionHoverBackground != null)
 			{
-				context.Draw(SelectionHoverBackground, HoverRow.RowBounds);
+				SelectionHoverBackground.Draw(context, HoverRow.RowBounds);
 			}
 
 			if (SelectedRow != null && SelectedRow.RowVisible && SelectionBackground != null)
 			{
-				context.Draw(SelectionBackground, SelectedRow.RowBounds);
+				SelectionBackground.Draw(context, SelectedRow.RowBounds);
 			}
 
 			base.InternalRender(context);

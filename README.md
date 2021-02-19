@@ -1,5 +1,5 @@
 ## Overview
-[![Nuget](https://img.shields.io/nuget/dt/Myra)](https://www.nuget.org/packages/Myra/) [![Build status](https://ci.appveyor.com/api/projects/status/ec4fpr4v0gn9moi7?svg=true)](https://ci.appveyor.com/project/RomanShapiro/myra) [![Chat](https://img.shields.io/discord/628186029488340992.svg)](https://discord.gg/ZeHxhCY)
+[![Nuget](https://img.shields.io/nuget/dt/Myra)](https://www.nuget.org/packages/Myra/) ![Build & Publish](https://github.com/rds1983/Myra/workflows/Build%20&%20Publish/badge.svg) [![Chat](https://img.shields.io/discord/628186029488340992.svg)](https://discord.gg/ZeHxhCY)
 
 Myra is UI Library for [MonoGame](http://www.monogame.net/), [FNA](https://github.com/FNA-XNA/FNA) and [Stride](https://github.com/stride3d/stride).  
 
@@ -8,6 +8,7 @@ Myra is UI Library for [MonoGame](http://www.monogame.net/), [FNA](https://githu
 * **MML(Myra Markup Language).** XML based declarative language to describe UI ([example](/samples/Myra.Samples.AllWidgets/allControls.xml)).
 * **Skinning.**  The default skin(it had been borrowed from [VisUI](https://github.com/kotcrab/vis-ui)) could be replaced with a custom skin loaded from the XML ([example](/samples/Myra.Samples.CustomUIStylesheet/Resources/ui_stylesheet.xml)).
 * **MyraPad.** Standalone WYSIWYG MML based UI designer.
+* **Myra.PlatformAgnostic.** Version of the library that could be used in any C# game engine.
 
 ## Demo
 If you would like to see Myra in action, download the binary release(Myra.v.v.v.v.zip from the latest release at [Releases](https://github.com/rds1983/Myra/releases)), unpack it and run samples(should be runnable on Linux too through Mono).

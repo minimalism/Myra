@@ -1,17 +1,10 @@
-﻿using Myra.Assets;
-using Myra.Graphics2D.TextureAtlases;
+﻿using Myra.Graphics2D.TextureAtlases;
 using Myra.MML;
 using System;
 using System.Collections.Generic;
 using System.Xml.Linq;
-using XNAssets;
-using Myra.Graphics2D.Brushes;
-
-#if !STRIDE
-using Microsoft.Xna.Framework.Graphics;
-#else
-using Stride.Graphics;
-#endif
+using FontStashSharp;
+using AssetManagementBase;
 
 namespace Myra.Graphics2D.UI.Styles
 {
@@ -31,34 +24,41 @@ namespace Myra.Graphics2D.UI.Styles
 			var textureRegionAtlas = context.Load<TextureRegionAtlas>(attr.Value);
 
 			// Load fonts
-			var fonts = new Dictionary<string, SpriteFont>();
+			var fonts = new Dictionary<string, SpriteFontBase>();
 			var fontsNode = xDoc.Root.Element("Fonts");
 			foreach (var el in fontsNode.Elements())
 			{
-				var font = el.Attribute("File").Value;
-				fonts[el.Attribute(BaseContext.IdName).Value] = context.Load<SpriteFont>(font);
-			}
+				SpriteFontBase font = null;
 
-			return Stylesheet.LoadFromSource(xml,
-				name =>
+				var fontFile = el.Attribute("File").Value;
+				if (fontFile.EndsWith(".ttf"))
 				{
-					TextureRegion region;
+					var parts = new List<string>();
+					parts.Add(fontFile);
+					
+					var typeAttribute = el.Attribute("Type");
+					if (typeAttribute != null)
+					{
+						parts.Add(typeAttribute.Value);
 
-					if (!textureRegionAtlas.Regions.TryGetValue(name, out region))
-					{
-						var color = ColorStorage.FromName(name);
-						if (color != null)
-						{
-							return new SolidBrush(color.Value);
-						}
-					} else
-					{
-						return region;
+						var amountAttribute = el.Attribute("Amount");
+						parts.Add(amountAttribute.Value);
 					}
 
-					throw new Exception(string.Format("Could not find parse IBrush '{0}'", name));
-				},
-				name => fonts[name]);
+					parts.Add(el.Attribute("Size").Value);
+					font = context.Load<DynamicSpriteFont>(string.Join(":", parts));
+				} else if (fontFile.EndsWith(".fnt"))
+				{
+					font = context.Load<StaticSpriteFont>(fontFile);
+				} else
+				{
+					throw new Exception(string.Format("Font '{0}' isn't supported", fontFile));
+				}
+
+				fonts[el.Attribute(BaseContext.IdName).Value] = font;
+			}
+
+			return Stylesheet.LoadFromSource(xml, textureRegionAtlas, fonts);
 		}
 	}
 }

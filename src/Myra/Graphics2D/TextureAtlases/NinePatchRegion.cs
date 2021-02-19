@@ -1,10 +1,12 @@
-﻿#if !STRIDE
+﻿#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
-using Stride.Graphics;
 using Texture2D = Stride.Graphics.Texture;
+#else
+using System.Drawing;
+using Texture2D = System.Object;
 #endif
 
 namespace Myra.Graphics2D.TextureAtlases
@@ -129,7 +131,7 @@ namespace Myra.Graphics2D.TextureAtlases
 			}
 		}
 
-		public override void Draw(SpriteBatch batch, Rectangle dest, Color color)
+		public override void Draw(RenderContext context, Rectangle dest, Color color)
 		{
 			var y = dest.Y;
 
@@ -138,7 +140,7 @@ namespace Myra.Graphics2D.TextureAtlases
 
 			if (_topLeft != null)
 			{
-				_topLeft.Draw(batch,
+				_topLeft.Draw(context,
 					new Rectangle(dest.X,
 						y,
 						_info.Left,
@@ -148,7 +150,7 @@ namespace Myra.Graphics2D.TextureAtlases
 
 			if (_topCenter != null)
 			{
-				_topCenter.Draw(batch,
+				_topCenter.Draw(context,
 					new Rectangle(dest.X + _info.Left,
 						y,
 						centerWidth,
@@ -158,7 +160,7 @@ namespace Myra.Graphics2D.TextureAtlases
 
 			if (_topRight != null)
 			{
-				_topRight.Draw(batch,
+				_topRight.Draw(context,
 					new Rectangle(dest.X + Info.Left + centerWidth,
 						y,
 						_info.Right,
@@ -169,7 +171,7 @@ namespace Myra.Graphics2D.TextureAtlases
 			y += _info.Top;
 			if (_centerLeft != null)
 			{
-				_centerLeft.Draw(batch,
+				_centerLeft.Draw(context,
 					new Rectangle(dest.X,
 						y,
 						_info.Left,
@@ -179,7 +181,7 @@ namespace Myra.Graphics2D.TextureAtlases
 
 			if (_center != null)
 			{
-				_center.Draw(batch,
+				_center.Draw(context,
 					new Rectangle(dest.X + _info.Left,
 						y,
 						centerWidth,
@@ -189,7 +191,7 @@ namespace Myra.Graphics2D.TextureAtlases
 
 			if (_centerRight != null)
 			{
-				_centerRight.Draw(batch,
+				_centerRight.Draw(context,
 					new Rectangle(dest.X + Info.Left + centerWidth,
 						y,
 						_info.Right,
@@ -200,7 +202,7 @@ namespace Myra.Graphics2D.TextureAtlases
 			y += centerHeight;
 			if (_bottomLeft != null)
 			{
-				_bottomLeft.Draw(batch,
+				_bottomLeft.Draw(context,
 					new Rectangle(dest.X,
 						y,
 						_info.Left,
@@ -210,7 +212,7 @@ namespace Myra.Graphics2D.TextureAtlases
 
 			if (_bottomCenter != null)
 			{
-				_bottomCenter.Draw(batch,
+				_bottomCenter.Draw(context,
 					new Rectangle(dest.X + _info.Left,
 						y,
 						centerWidth,
@@ -220,7 +222,7 @@ namespace Myra.Graphics2D.TextureAtlases
 
 			if (_bottomRight != null)
 			{
-				_bottomRight.Draw(batch,
+				_bottomRight.Draw(context,
 					new Rectangle(dest.X + Info.Left + centerWidth,
 						y,
 						_info.Right,

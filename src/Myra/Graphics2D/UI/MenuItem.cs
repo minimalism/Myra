@@ -6,10 +6,12 @@ using Myra.Attributes;
 using Myra.Graphics2D.UI.Styles;
 using Myra.MML;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
+#else
+using System.Drawing;
 #endif
 
 namespace Myra.Graphics2D.UI
@@ -18,7 +20,6 @@ namespace Myra.Graphics2D.UI
 	{
 		private string _shortcutText;
 		private Color? _shortcutColor;
-		private bool _toggleable;
 		private IImage _image;
 		private string _text;
 		private Color? _color;
@@ -67,6 +68,8 @@ namespace Myra.Graphics2D.UI
 						UnderscoreChar = char.ToLower(value[underscoreIndex + 1]);
 					}
 				}
+
+				FireChanged();
 			}
 		}
 
@@ -170,26 +173,6 @@ namespace Myra.Graphics2D.UI
 				}
 
 				_shortcutColor = value;
-				FireChanged();
-			}
-		}
-
-		[DefaultValue(false)]
-		public bool Toggleable
-		{
-			get
-			{
-				return _toggleable;
-			}
-
-			set
-			{
-				if (value == _toggleable)
-				{
-					return;
-				}
-
-				_toggleable = value;
 				FireChanged();
 			}
 		}

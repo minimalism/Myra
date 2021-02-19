@@ -6,10 +6,12 @@ using System.ComponentModel;
 using Myra.Utility;
 using System.Xml.Serialization;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
+#else
+using System.Drawing;
 #endif
 
 namespace Myra.Graphics2D.UI
@@ -524,7 +526,7 @@ namespace Myra.Graphics2D.UI
 					{
 						var gridPosition = GetActualGridPosition(widget);
 
-						var measuredSize = Point.Zero;
+						var measuredSize = Mathematics.PointZero;
 						if (rowProportion.Type != ProportionType.Pixels ||
 							colProportion.Type != ProportionType.Pixels)
 						{
@@ -557,7 +559,7 @@ namespace Myra.Graphics2D.UI
 			// #181: All Part proportions must have maximum size
 			LayoutProcessFixedPart();
 
-			var result = Point.Zero;
+			var result = Mathematics.PointZero;
 			for (i = 0; i < _measureColWidths.Count; ++i)
 			{
 				var w = _measureColWidths[i];
@@ -698,11 +700,11 @@ namespace Myra.Graphics2D.UI
 				}
 			}
 
-			_actualSize = Point.Zero;
+			_actualSize = Mathematics.PointZero;
 			_gridLinesX.Clear();
 			_cellLocationsX.Clear();
 
-			var p = Point.Zero;
+			var p = Mathematics.PointZero;
 
 			for (var i = 0; i < _colWidths.Count; ++i)
 			{
@@ -759,7 +761,7 @@ namespace Myra.Graphics2D.UI
 			var col = gridPosition.X;
 			var row = gridPosition.Y;
 
-			var cellSize = Point.Zero;
+			var cellSize = Mathematics.PointZero;
 
 			for (var i = col; i < col + control.GridColumnSpan; ++i)
 			{
@@ -835,7 +837,7 @@ namespace Myra.Graphics2D.UI
 								bounds.Width,
 								_rowHeights[HoverRowIndex.Value] + RowSpacing), context.View);
 
-							context.Draw(SelectionHoverBackground, rect);
+							SelectionHoverBackground.Draw(context, rect);
 						}
 
 						if (SelectedRowIndex != null && SelectionBackground != null)
@@ -845,7 +847,7 @@ namespace Myra.Graphics2D.UI
 								bounds.Width,
 								_rowHeights[SelectedRowIndex.Value] + RowSpacing), context.View);
 
-							context.Draw(SelectionBackground, rect);
+							SelectionBackground.Draw(context, rect);
 						}
 					}
 					break;
@@ -858,7 +860,7 @@ namespace Myra.Graphics2D.UI
 								_colWidths[HoverColumnIndex.Value] + ColumnSpacing,
 								bounds.Height), context.View);
 
-							context.Draw(SelectionHoverBackground, rect);
+							SelectionHoverBackground.Draw(context, rect);
 						}
 
 						if (SelectedColumnIndex != null && SelectionBackground != null)
@@ -868,7 +870,7 @@ namespace Myra.Graphics2D.UI
 								_colWidths[SelectedColumnIndex.Value] + ColumnSpacing,
 								bounds.Height), context.View);
 
-							context.Draw(SelectionBackground, rect);
+							SelectionBackground.Draw(context, rect);
 						}
 					}
 					break;
@@ -883,7 +885,7 @@ namespace Myra.Graphics2D.UI
 								_colWidths[HoverColumnIndex.Value] + ColumnSpacing,
 								_rowHeights[HoverRowIndex.Value] + RowSpacing), context.View);
 
-							context.Draw(SelectionHoverBackground, rect);
+							SelectionHoverBackground.Draw(context, rect);
 						}
 
 						if (SelectedRowIndex != null && SelectedColumnIndex != null && SelectionBackground != null)
@@ -893,7 +895,7 @@ namespace Myra.Graphics2D.UI
 								_colWidths[SelectedColumnIndex.Value] + ColumnSpacing,
 								_rowHeights[SelectedRowIndex.Value] + RowSpacing), context.View);
 
-							context.Draw(SelectionBackground, rect);
+							SelectionBackground.Draw(context, rect);
 						}
 					}
 					break;

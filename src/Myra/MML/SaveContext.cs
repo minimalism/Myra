@@ -8,14 +8,15 @@ using System.Xml.Linq;
 using Myra.Attributes;
 using System.Linq;
 using Myra.Graphics2D;
-using XNAssets.Utility;
+using AssetManagementBase.Utility;
+using FontStashSharp;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
-using Stride.Graphics;
+#else
+using System.Drawing;
 #endif
 
 namespace Myra.MML
@@ -63,7 +64,7 @@ namespace Myra.MML
 					{
 						str = ((Color)value).ToHexString();
 					}
-					else if (typeof(IBrush).IsAssignableFrom(property.PropertyType) || property.PropertyType == typeof(SpriteFont))
+					else if (typeof(IBrush).IsAssignableFrom(property.PropertyType) || property.PropertyType == typeof(SpriteFontBase))
 					{
 						if (baseObject != null)
 						{

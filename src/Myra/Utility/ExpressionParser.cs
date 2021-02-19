@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
+#else
+using System.Drawing;
 #endif
 
 namespace Myra.Utility
@@ -83,10 +85,10 @@ namespace Myra.Utility
                 expression = expression.Replace("&.height", GerParrentValue(widget, "&.h"));
             }
             ///add window walues
-            expression = expression.Replace("W.h", $"{MyraEnvironment.Game.Window.ClientBounds.Height}");
-            expression = expression.Replace("W.height", $"{MyraEnvironment.Game.Window.ClientBounds.Height}");
-            expression = expression.Replace("W.w", $"{MyraEnvironment.Game.Window.ClientBounds.Width}");
-            expression = expression.Replace("W.width", $"{MyraEnvironment.Game.Window.ClientBounds.Width}");
+            expression = expression.Replace("W.h", $"{CrossEngineStuff.ViewSize.Y}");
+            expression = expression.Replace("W.height", $"{CrossEngineStuff.ViewSize.Y}");
+            expression = expression.Replace("W.w", $"{CrossEngineStuff.ViewSize.X}");
+            expression = expression.Replace("W.width", $"{CrossEngineStuff.ViewSize.X}");
             ///
             if (expression.Contains("["))
             {
@@ -118,9 +120,9 @@ namespace Myra.Utility
                     case "&.Y":
                         return "0";
                     case "&.w":
-                        return $"{MyraEnvironment.Game.Window.ClientBounds.Width}";
+                        return $"{CrossEngineStuff.ViewSize.X}";
                     case "&.h":
-                        return $"{MyraEnvironment.Game.Window.ClientBounds.Height}";
+                        return $"{CrossEngineStuff.ViewSize.Y}";
                 }
             }
             else
@@ -163,14 +165,14 @@ namespace Myra.Utility
                 case "width":
                     if (widgets.IsEmpty)
                     {
-                        return MyraEnvironment.Game.GraphicsDevice.ViewSize().X;
+                        return CrossEngineStuff.ViewSize.X;
                     }
                     return widgets.Width;
                 case "h":
                 case "height":
                     if (widgets.IsEmpty)
                     {
-                        return MyraEnvironment.Game.GraphicsDevice.ViewSize().Y;
+                        return CrossEngineStuff.ViewSize.Y;
                     }
                     return widgets.Height;
                 default:

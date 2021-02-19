@@ -8,14 +8,15 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
 using Myra.Attributes;
-using XNAssets.Utility;
+using AssetManagementBase.Utility;
+using FontStashSharp;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
-using Stride.Graphics;
+#else
+using System.Drawing;
 #endif
 
 namespace Myra.MML
@@ -27,7 +28,7 @@ namespace Myra.MML
 		public Dictionary<string, Color> Colors;
 		public HashSet<string> NodesToIgnore = null;
 		public Func<Type, XElement, object> ObjectCreator = (type, el) => Activator.CreateInstance(type);
-		public string Namespace;
+		public string[] Namespaces;
 		public Assembly Assembly = typeof(Widget).Assembly;
 		public Func<Type, string, object> ResourceGetter = null;
 
@@ -79,7 +80,7 @@ namespace Myra.MML
 						}
 					}
 					else if ((typeof(IBrush).IsAssignableFrom(propertyType) ||
-							 propertyType == typeof(SpriteFont)) &&
+							 propertyType == typeof(SpriteFontBase)) &&
 							 !string.IsNullOrEmpty(attr.Value) &&
 							 ResourceGetter != null)
 					{
@@ -230,7 +231,15 @@ namespace Myra.MML
 						widgetName = newName;
 					}
 
-					var itemType = Assembly.GetType(Namespace + "." + widgetName);
+					Type itemType = null;
+					foreach(var ns in Namespaces)
+					{
+						itemType = Assembly.GetType(ns + "." + widgetName);
+						if (itemType != null)
+						{
+							break;
+						}
+					}
 					if (itemType != null)
 					{
 						var item = ObjectCreator(itemType, child);

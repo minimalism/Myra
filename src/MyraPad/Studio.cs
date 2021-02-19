@@ -18,8 +18,8 @@ using Microsoft.Xna.Framework.Input;
 using System.Threading;
 using System.Xml.Linq;
 using Myra.Graphics2D;
-using XNAssets;
-using XNAssets.Utility;
+using AssetManagementBase;
+using AssetManagementBase.Utility;
 
 namespace MyraPad
 {
@@ -48,6 +48,7 @@ namespace MyraPad
 			"Image",
 			"Label",
 			"TextBox",
+			"PropertyGrid",
 		};
 
 		private static readonly string[] Containers = new[]
@@ -127,7 +128,7 @@ namespace MyraPad
 				{
 					var folder = Path.GetDirectoryName(_filePath);
 					PropertyGridSettings.BasePath = folder;
-					PropertyGridSettings.AssetManager = new AssetManager(GraphicsDevice, new FileAssetResolver(folder));
+					PropertyGridSettings.AssetManager = new AssetManager(new FileAssetResolver(folder));
 					_lastFolder = folder;
 				} else
 				{
@@ -347,33 +348,33 @@ namespace MyraPad
 					return;
 				}
 
-				if (_desktop.DownKeys.Contains(Keys.LeftControl) || _desktop.DownKeys.Contains(Keys.RightControl))
+				if (_desktop.IsKeyDown(Keys.LeftControl) || _desktop.IsKeyDown(Keys.RightControl))
 				{
-					if (_desktop.DownKeys.Contains(Keys.N))
+					if (_desktop.IsKeyDown(Keys.N))
 					{
 						NewItemOnClicked(this, EventArgs.Empty);
 					}
-					else if (_desktop.DownKeys.Contains(Keys.O))
+					else if (_desktop.IsKeyDown(Keys.O))
 					{
 						OpenItemOnClicked(this, EventArgs.Empty);
 					}
-					else if (_desktop.DownKeys.Contains(Keys.R))
+					else if (_desktop.IsKeyDown(Keys.R))
 					{
 						OnMenuFileReloadSelected(this, EventArgs.Empty);
 					}
-					else if (_desktop.DownKeys.Contains(Keys.S))
+					else if (_desktop.IsKeyDown(Keys.S))
 					{
 						SaveItemOnClicked(this, EventArgs.Empty);
 					}
-					else if (_desktop.DownKeys.Contains(Keys.E))
+					else if (_desktop.IsKeyDown(Keys.E))
 					{
 						ExportCsItemOnSelected(this, EventArgs.Empty);
 					}
-					else if (_desktop.DownKeys.Contains(Keys.Q))
+					else if (_desktop.IsKeyDown(Keys.Q))
 					{
 						Exit();
 					}
-					else if (_desktop.DownKeys.Contains(Keys.F))
+					else if (_desktop.IsKeyDown(Keys.F))
 					{
 						_menuEditUpdateSource_Selected(this, EventArgs.Empty);
 					}
@@ -1018,7 +1019,7 @@ namespace MyraPad
 					}
 
 					var screen = _ui._textSource.CursorScreenPosition;
-					screen.Y += _ui._textSource.Font.LineSpacing;
+					screen.Y += _ui._textSource.Font.FontSize;
 
 					if (_autoCompleteMenu.Items.Count > 0)
 					{
@@ -1168,7 +1169,7 @@ namespace MyraPad
 
 			var dlg = new FileDialog(FileDialogMode.OpenFile)
 			{
-				Filter = "*.xml"
+				Filter = "*.xmms|*.xml"
 			};
 
 			try
@@ -1259,16 +1260,17 @@ namespace MyraPad
 
 					UpdateSource();
 
-					var export = new ExporterCS(Instance.Project);
-
-					var strings = new List<string>
+					using (var export = new ExporterCS(Instance.Project))
 					{
-						"Success. Following files had been written:"
-					};
-					strings.AddRange(export.Export());
+						var strings = new List<string>
+						{
+							"Success. Following files had been written:"
+						};
+						strings.AddRange(export.Export());
 
-					var msg = Dialog.CreateMessageBox("Export To C#", string.Join("\n", strings));
-					msg.ShowModal(_desktop);
+						var msg = Dialog.CreateMessageBox("Export To C#", string.Join("\n", strings));
+						msg.ShowModal(_desktop);
+					}
 				}
 				catch (Exception ex)
 				{
@@ -1402,7 +1404,7 @@ namespace MyraPad
 		{
 			var dlg = new FileDialog(FileDialogMode.OpenFile)
 			{
-				Filter = "*.xml"
+				Filter = "*.xmmp|*.xml"
 			};
 
 			if (!string.IsNullOrEmpty(FilePath))
@@ -1549,7 +1551,7 @@ namespace MyraPad
 			{
 				var dlg = new FileDialog(FileDialogMode.SaveFile)
 				{
-					Filter = "*.xml"
+					Filter = "*.xmmp"
 				};
 
 				if (!string.IsNullOrEmpty(FilePath))

@@ -6,12 +6,15 @@ using Myra.Utility;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
 using Stride.Input;
+#else
+using System.Drawing;
+using Myra.Platform;
 #endif
 
 namespace Myra.Graphics2D.UI
@@ -178,6 +181,10 @@ namespace Myra.Graphics2D.UI
 					break;
 				}
 
+				case NotifyCollectionChangedAction.Reset:
+					UpdateSelectedItem();
+					break;
+
 				default:
 					throw new NotImplementedException(args.Action.ToString());
 			}
@@ -220,11 +227,18 @@ namespace Myra.Graphics2D.UI
 			// Reset ListBox Width so it wont be return by ListBox.Measure
 			_listBox.Width = null;
 
+			// Make visible, otherwise Measure will return zero
+			var wasVisible = _listBox.Visible;
+			_listBox.Visible = true;
+
 			var listResult = _listBox.Measure(new Point(10000, 10000));
 			if (listResult.X > result.X)
 			{
 				result.X = listResult.X;
 			}
+
+			// Revert ListBox visibility
+			_listBox.Visible = wasVisible;
 
 			// Add some x space
 			result.X += 32;

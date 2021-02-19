@@ -11,16 +11,18 @@ using Myra.MML;
 using Myra.Graphics2D.UI.File;
 using Myra.Graphics2D.TextureAtlases;
 using System.IO;
-using Myra.Graphics2D.Brushes;
-using XNAssets.Utility;
+using AssetManagementBase.Utility;
 using Myra.Attributes;
+using FontStashSharp;
+using Myra.Graphics2D.Brushes;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
-using Stride.Graphics;
+#else
+using System.Drawing;
+using SolidBrush = Myra.Graphics2D.Brushes.SolidBrush;
 #endif
 
 namespace Myra.Graphics2D.UI.Properties
@@ -54,6 +56,8 @@ namespace Myra.Graphics2D.UI.Properties
 				}
 			}
 
+			[Browsable(false)]
+			[XmlIgnore]
 			public bool IsEmpty
 			{
 				get
@@ -154,7 +158,7 @@ namespace Myra.Graphics2D.UI.Properties
 					var headerBounds = HeaderBounds;
 					if (headerBounds.Contains(Desktop.MousePosition))
 					{
-						context.Draw(_propertyGrid.PropertyGridStyle.SelectionHoverBackground, headerBounds);
+						_propertyGrid.PropertyGridStyle.SelectionHoverBackground.Draw(context, headerBounds);
 					}
 				}
 
@@ -199,6 +203,8 @@ namespace Myra.Graphics2D.UI.Properties
 		[XmlIgnore]
 		public string Category { get; private set; }
 		
+		[Category("Behavior")]
+		[DefaultValue(false)]
 		public bool IgnoreCollections
 		{
 			get
@@ -217,6 +223,8 @@ namespace Myra.Graphics2D.UI.Properties
 			}
 		}
 
+		[Browsable(false)]
+		[XmlIgnore]
 		public bool IsEmpty
 		{
 			get
@@ -225,6 +233,8 @@ namespace Myra.Graphics2D.UI.Properties
 			}
 		}
 
+		[Browsable(false)]
+		[XmlIgnore]
 		public PropertyGridSettings Settings
 		{
 			get
@@ -238,6 +248,8 @@ namespace Myra.Graphics2D.UI.Properties
 			}
 		}
 
+		[Browsable(false)]
+		[XmlIgnore]
 		public int FirstColumnWidth
 		{
 			get
@@ -251,7 +263,26 @@ namespace Myra.Graphics2D.UI.Properties
 			}
 		}
 
+		[DefaultValue(HorizontalAlignment.Stretch)]
+		public override HorizontalAlignment HorizontalAlignment
+		{
+			get { return base.HorizontalAlignment; }
+			set { base.HorizontalAlignment = value; }
+		}
+
+		[DefaultValue(VerticalAlignment.Stretch)]
+		public override VerticalAlignment VerticalAlignment
+		{
+			get { return base.VerticalAlignment; }
+			set { base.VerticalAlignment = value; }
+		}
+
+		[Browsable(false)]
+		[XmlIgnore]
 		public Func<Record, object[]> CustomValuesProvider;
+
+		[Browsable(false)]
+		[XmlIgnore]
 		public Func<Record, object, object, bool> CustomSetter;
 
 		public event EventHandler<GenericEventArgs<string>> PropertyChanged;
@@ -264,8 +295,8 @@ namespace Myra.Graphics2D.UI.Properties
 			_parentProperty = parentProperty;
 			InternalChild.ColumnSpacing = 8;
 			InternalChild.RowSpacing = 8;
-			InternalChild.ColumnsProportions.Add(new Proportion(ProportionType.Pixels, 150));
-			InternalChild.ColumnsProportions.Add(new Proportion(ProportionType.Fill));
+			InternalChild.ColumnsProportions.Add(new Proportion(ProportionType.Part, 1));
+			InternalChild.ColumnsProportions.Add(new Proportion(ProportionType.Part, 1));
 
 			Category = category;
 
@@ -962,9 +993,9 @@ namespace Myra.Graphics2D.UI.Properties
 						}
 					}
 				}
-				else if (propertyType == typeof(SpriteFont))
+				else if (propertyType == typeof(SpriteFontBase))
 				{
-					valueWidget = CreateFileEditor<SpriteFont>(record, hasSetter, "*.fnt");
+					valueWidget = CreateFileEditor<SpriteFontBase>(record, hasSetter, "*.fnt");
 				}
 				else if (propertyType == typeof(IBrush))
 				{

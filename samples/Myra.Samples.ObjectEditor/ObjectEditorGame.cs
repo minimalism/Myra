@@ -2,6 +2,9 @@
 using Microsoft.Xna.Framework;
 using Myra.Graphics2D.UI.Properties;
 using Microsoft.Xna.Framework.Graphics;
+using FontStashSharp;
+using System.Linq;
+using Myra.Graphics2D;
 
 namespace Myra.Samples.ObjectEditor
 {
@@ -14,7 +17,10 @@ namespace Myra.Samples.ObjectEditor
 		private Window _windowEditor;
 		private Point _lastPosition = new Point(800, 100);
 		private SpriteBatch _spriteBatch;
+		private RenderContext _renderContext;
 		private Desktop _desktop;
+		private SpriteFontBase _font;
+
 		public static ObjectEditorGame Instance { get; private set; }
 
 		public ObjectEditorGame()
@@ -42,6 +48,8 @@ namespace Myra.Samples.ObjectEditor
 			}
 
 			MyraEnvironment.Game = this;
+
+			_font = DefaultAssets.UIStylesheet.Fonts.Values.First();
 
 			var root = new Panel();
 
@@ -85,17 +93,20 @@ namespace Myra.Samples.ObjectEditor
 
 			// Force window show
 			showButton.IsPressed = true;
+
 #if MONOGAME
 			// Inform Myra that external text input is available
 			// So it stops translating Keys to chars
-			Desktop.HasExternalTextInput = true;
+			_desktop.HasExternalTextInput = true;
 
 			// Provide that text input
 			Window.TextInput += (s, a) =>
 			{
-				Desktop.OnChar(a.Character);
+				_desktop.OnChar(a.Character);
 			};
 #endif
+
+			_renderContext = new RenderContext();
 		}
 
 		private void ShowButton_PressedChanged(object sender, System.EventArgs e)
@@ -120,23 +131,25 @@ namespace Myra.Samples.ObjectEditor
 
 			if (_player.Visible)
 			{
-				_spriteBatch.Begin();
-
-				var font = DefaultAssets.Font;
-				if (!string.IsNullOrEmpty(_player.Name))
-				{
-					var size = font.MeasureString(_player.Name);
-					_spriteBatch.DrawString(font, _player.Name, 
-						new Vector2(_player.X, _player.Y - size.Y - 5), _player.Color);
-				}
 
 				var playerRect = new Rectangle(_player.X, _player.Y, _player.Width, _player.Height);
 				if (_player.Background != null)
 				{
-					_player.Background.Draw(_spriteBatch, playerRect, _player.Color);
+					_renderContext.Begin();
+					_player.Background.Draw(_renderContext, playerRect, _player.Color);
+					_renderContext.End();
 				}
 
-				_spriteBatch.DrawString(font, 
+				_spriteBatch.Begin();
+
+				if (!string.IsNullOrEmpty(_player.Name))
+				{
+					var size = _font.MeasureString(_player.Name);
+					_spriteBatch.DrawString(_font, _player.Name, 
+						new Vector2(_player.X, _player.Y - size.Y - 5), _player.Color);
+				}
+
+				_spriteBatch.DrawString(_font, 
 					string.Format("HP: {0}/{1}", _player.HitPoints.Current, _player.HitPoints.Maximum), 
 					new Vector2(playerRect.X, playerRect.Bottom + 5), _player.Color);
 

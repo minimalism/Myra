@@ -1,79 +1,33 @@
 ﻿// This code had been borrowed from the MonoGame.Extended project: https://github.com/craftworkgames/MonoGame.Extended
 
 using System;
+using Myra.Utility;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
 using Stride.Graphics;
 using Texture2D = Stride.Graphics.Texture;
+#else
+using System.Drawing;
+using System.Numerics;
 #endif
 
-
-namespace Myra
+namespace Myra.Graphics2D
 {
-	/// <summary>
-	/// Sprite batch extensions for drawing primitive shapes
-	/// </summary>
-	public static class ShapeExtensions
+	partial class RenderContext
 	{
-		private static void Draw(this SpriteBatch spriteBatch, Texture2D texture, 
-			Vector2 offset, Color color, Vector2 scale, float rotation = 0.0f)
-		{
-			spriteBatch.Draw(texture, offset, null, color, 
-				rotation, Vector2.Zero, scale, SpriteEffects.None, 0.0f);
-		}
-
-		/// <summary>
-		///     Draws a closed polygon from an array of points
-		/// </summary>
-		/// <param name="spriteBatch">The destination drawing surface</param>
-		/// ///
-		/// <param name="offset">Where to offset the points</param>
-		/// <param name="points">The points to connect with lines</param>
-		/// <param name="color">The color to use</param>
-		/// <param name="thickness">The thickness of the lines</param>
-		public static void DrawPolygon(this SpriteBatch spriteBatch, Vector2 offset, Vector2[] points, Color color,
-			float thickness = 1f)
-		{
-			if (points.Length == 0)
-				return;
-
-			if (points.Length == 1)
-			{
-				DrawPoint(spriteBatch, points[0], color, (int) thickness);
-				return;
-			}
-
-			var texture = DefaultAssets.White;
-
-			for (var i = 0; i < points.Length - 1; i++)
-				DrawPolygonEdge(spriteBatch, texture, points[i] + offset, points[i + 1] + offset, color, thickness);
-
-			DrawPolygonEdge(spriteBatch, texture, points[points.Length - 1] + offset, points[0] + offset, color,
-				thickness);
-		}
-
-		private static void DrawPolygonEdge(SpriteBatch spriteBatch, Texture2D texture, Vector2 point1, Vector2 point2,
-			Color color, float thickness)
-		{
-			var length = Vector2.Distance(point1, point2);
-			var angle = (float) Math.Atan2(point2.Y - point1.Y, point2.X - point1.X);
-			var scale = new Vector2(length, thickness);
-			spriteBatch.Draw(texture, point1, color, scale, angle);
-		}
-
 		/// <summary>
 		///     Draws a filled rectangle
 		/// </summary>
 		/// <param name="spriteBatch">The destination drawing surface</param>
 		/// <param name="rectangle">The rectangle to draw</param>
 		/// <param name="color">The color to draw the rectangle in</param>
-		public static void FillRectangle(this SpriteBatch spriteBatch, Rectangle rectangle, Color color)
+		public void FillRectangle(Rectangle rectangle, Color color)
 		{
-			FillRectangle(spriteBatch, new Vector2(rectangle.X, rectangle.Y), new Vector2(rectangle.Width, rectangle.Height), color);
+			FillRectangle(new Vector2(rectangle.X, rectangle.Y), new Vector2(rectangle.Width, rectangle.Height), color);
 		}
 
 		/// <summary>
@@ -83,9 +37,12 @@ namespace Myra
 		/// <param name="location">Where to draw</param>
 		/// <param name="size">The size of the rectangle</param>
 		/// <param name="color">The color to draw the rectangle in</param>
-		public static void FillRectangle(this SpriteBatch spriteBatch, Vector2 location, Vector2 size, Color color)
+		public void FillRectangle(Vector2 location, Vector2 size, Color color)
 		{
-			spriteBatch.Draw(DefaultAssets.White, location, null, color, 0, Vector2.Zero, size, SpriteEffects.None, 0);
+			Draw(DefaultAssets.WhiteTexture,
+				new Rectangle((int)location.X, (int)location.Y, (int)size.X, (int)size.Y),
+				null,
+				color);
 		}
 
 		/// <summary>
@@ -97,10 +54,10 @@ namespace Myra
 		/// <param name="width">Width</param>
 		/// <param name="height">Height</param>
 		/// <param name="color">The color to draw the rectangle in</param>
-		public static void FillRectangle(this SpriteBatch spriteBatch, float x, float y, float width, float height,
+		public void FillRectangle(float x, float y, float width, float height,
 			Color color)
 		{
-			FillRectangle(spriteBatch, new Vector2(x, y), new Vector2(width, height), color);
+			FillRectangle(new Vector2(x, y), new Vector2(width, height), color);
 		}
 
 		/// <summary>
@@ -110,20 +67,24 @@ namespace Myra
 		/// <param name="rectangle">The rectangle to draw</param>
 		/// <param name="color">The color to draw the rectangle in</param>
 		/// <param name="thickness">The thickness of the lines</param>
-		public static void DrawRectangle(this SpriteBatch spriteBatch, Rectangle rectangle, Color color,
-			float thickness = 1f)
+		public void DrawRectangle(Rectangle rectangle, Color color, float thickness = 1f)
 		{
-			var texture = DefaultAssets.White;
-			var topLeft = new Vector2(rectangle.X, rectangle.Y);
-			var topRight = new Vector2(rectangle.Right - thickness, rectangle.Y);
-			var bottomLeft = new Vector2(rectangle.X, rectangle.Bottom - thickness);
-			var horizontalScale = new Vector2(rectangle.Width, thickness);
-			var verticalScale = new Vector2(thickness, rectangle.Height);
+			var texture = DefaultAssets.WhiteTexture;
+			var t = (int)thickness;
 
-			spriteBatch.Draw(texture, topLeft, color, horizontalScale);
-			spriteBatch.Draw(texture, topLeft, color, verticalScale);
-			spriteBatch.Draw(texture, topRight, color, verticalScale);
-			spriteBatch.Draw(texture, bottomLeft, color, horizontalScale);
+			var c = CrossEngineStuff.MultiplyColor(color, Opacity);
+
+			// Top
+			Draw(texture, new Rectangle(rectangle.X, rectangle.Y, rectangle.Width, t), null, c);
+
+			// Bottom
+			Draw(texture, new Rectangle(rectangle.X, rectangle.Bottom - t, rectangle.Width, t), null, c);
+
+			// Left
+			Draw(texture, new Rectangle(rectangle.X, rectangle.Y, t, rectangle.Height), null, c);
+
+			// Right
+			Draw(texture, new Rectangle(rectangle.Right - t, rectangle.Y, t, rectangle.Height), null, c);
 		}
 
 		/// <summary>
@@ -134,11 +95,55 @@ namespace Myra
 		/// <param name="size">The size of the rectangle</param>
 		/// <param name="color">The color to draw the rectangle in</param>
 		/// <param name="thickness">The thickness of the line</param>
-		public static void DrawRectangle(this SpriteBatch spriteBatch, Vector2 location, Vector2 size, Color color,
+		public void DrawRectangle(Vector2 location, Vector2 size, Color color,
 			float thickness = 1f)
 		{
-			DrawRectangle(spriteBatch, new Rectangle((int) location.X, (int) location.Y, (int) size.X, (int) size.Y), color,
+			DrawRectangle(new Rectangle((int)location.X, (int)location.Y, (int)size.X, (int)size.Y), color,
 				thickness);
+		}
+
+#if MONOGAME || FNA || STRIDE
+
+		private void Draw(Texture2D texture, Vector2 offset, Color color, Vector2 scale, float rotation = 0.0f)
+		{
+			Draw(texture, offset, null, color, rotation, Vector2.Zero, scale, SpriteEffects.None, 0.0f);
+		}
+
+		/// <summary>
+		///     Draws a closed polygon from an array of points
+		/// </summary>
+		/// <param name="spriteBatch">The destination drawing surface</param>
+		/// ///
+		/// <param name="offset">Where to offset the points</param>
+		/// <param name="points">The points to connect with lines</param>
+		/// <param name="color">The color to use</param>
+		/// <param name="thickness">The thickness of the lines</param>
+		public void DrawPolygon(Vector2 offset, Vector2[] points, Color color, float thickness = 1f)
+		{
+			if (points.Length == 0)
+				return;
+
+			if (points.Length == 1)
+			{
+				DrawPoint(points[0], color, (int)thickness);
+				return;
+			}
+
+			var texture = DefaultAssets.WhiteTexture;
+
+			for (var i = 0; i < points.Length - 1; i++)
+				DrawPolygonEdge(texture, points[i] + offset, points[i + 1] + offset, color, thickness);
+
+			DrawPolygonEdge(texture, points[points.Length - 1] + offset, points[0] + offset, color,
+				thickness);
+		}
+
+		private void DrawPolygonEdge(Texture2D texture, Vector2 point1, Vector2 point2, Color color, float thickness)
+		{
+			var length = Vector2.Distance(point1, point2);
+			var angle = (float)Math.Atan2(point2.Y - point1.Y, point2.X - point1.X);
+			var scale = new Vector2(length, thickness);
+			Draw(texture, point1, color, scale, angle);
 		}
 
 		/// <summary>
@@ -151,10 +156,10 @@ namespace Myra
 		/// <param name="y2">The Y coord of the second point</param>
 		/// <param name="color">The color to use</param>
 		/// <param name="thickness">The thickness of the line</param>
-		public static void DrawLine(this SpriteBatch spriteBatch, float x1, float y1, float x2, float y2, Color color,
+		public void DrawLine(float x1, float y1, float x2, float y2, Color color,
 			float thickness = 1f)
 		{
-			DrawLine(spriteBatch, new Vector2(x1, y1), new Vector2(x2, y2), color, thickness);
+			DrawLine(new Vector2(x1, y1), new Vector2(x2, y2), color, thickness);
 		}
 
 		/// <summary>
@@ -165,16 +170,16 @@ namespace Myra
 		/// <param name="point2">The second point</param>
 		/// <param name="color">The color to use</param>
 		/// <param name="thickness">The thickness of the line</param>
-		public static void DrawLine(this SpriteBatch spriteBatch, Vector2 point1, Vector2 point2, Color color,
+		public void DrawLine(Vector2 point1, Vector2 point2, Color color,
 			float thickness = 1f)
 		{
 			// calculate the distance between the two vectors
 			var distance = Vector2.Distance(point1, point2);
 
 			// calculate the angle between the two vectors
-			var angle = (float) Math.Atan2(point2.Y - point1.Y, point2.X - point1.X);
+			var angle = (float)Math.Atan2(point2.Y - point1.Y, point2.X - point1.X);
 
-			DrawLine(spriteBatch, point1, distance, angle, color, thickness);
+			DrawLine(point1, distance, angle, color, thickness);
 		}
 
 		/// <summary>
@@ -186,30 +191,30 @@ namespace Myra
 		/// <param name="angle">The angle of this line from the starting point</param>
 		/// <param name="color">The color to use</param>
 		/// <param name="thickness">The thickness of the line</param>
-		public static void DrawLine(this SpriteBatch spriteBatch, Vector2 point, float length, float angle, Color color,
+		public void DrawLine(Vector2 point, float length, float angle, Color color,
 			float thickness = 1f)
 		{
 			var origin = new Vector2(0f, 0.5f);
 			var scale = new Vector2(length, thickness);
-			spriteBatch.Draw(DefaultAssets.White, point, null, color, angle, origin, scale, SpriteEffects.None, 0);
+			Draw(DefaultAssets.WhiteTexture, point, null, color, angle, origin, scale, SpriteEffects.None, 0);
 		}
 
 		/// <summary>
 		///     Draws a point at the specified x, y position. The center of the point will be at the position.
 		/// </summary>
-		public static void DrawPoint(this SpriteBatch spriteBatch, float x, float y, Color color, float size = 1f)
+		public void DrawPoint(float x, float y, Color color, float size = 1f)
 		{
-			DrawPoint(spriteBatch, new Vector2(x, y), color, size);
+			DrawPoint(new Vector2(x, y), color, size);
 		}
 
 		/// <summary>
 		///     Draws a point at the specified position. The center of the point will be at the position.
 		/// </summary>
-		public static void DrawPoint(this SpriteBatch spriteBatch, Vector2 position, Color color, float size = 1f)
+		public void DrawPoint(Vector2 position, Color color, float size = 1f)
 		{
 			var scale = Vector2.One * size;
 			var offset = new Vector2(0.5f) - new Vector2(size * 0.5f);
-			spriteBatch.Draw(DefaultAssets.White, position + offset, color, scale);
+			Draw(DefaultAssets.WhiteTexture, position + offset, color, scale);
 		}
 
 		/// <summary>
@@ -221,10 +226,10 @@ namespace Myra
 		/// <param name="sides">The number of sides to generate</param>
 		/// <param name="color">The color of the circle</param>
 		/// <param name="thickness">The thickness of the lines used</param>
-		public static void DrawCircle(this SpriteBatch spriteBatch, Vector2 center, float radius, int sides, Color color,
+		public void DrawCircle(Vector2 center, float radius, int sides, Color color,
 			float thickness = 1f)
 		{
-			DrawPolygon(spriteBatch, center, CreateCircle(radius, sides), color, thickness);
+			DrawPolygon(center, CreateCircle(radius, sides), color, thickness);
 		}
 
 		/// <summary>
@@ -237,13 +242,13 @@ namespace Myra
 		/// <param name="sides">The number of sides to generate</param>
 		/// <param name="color">The color of the circle</param>
 		/// <param name="thickness">The thickness of the line</param>
-		public static void DrawCircle(this SpriteBatch spriteBatch, float x, float y, float radius, int sides,
+		public void DrawCircle(float x, float y, float radius, int sides,
 			Color color, float thickness = 1f)
 		{
-			DrawPolygon(spriteBatch, new Vector2(x, y), CreateCircle(radius, sides), color, thickness);
+			DrawPolygon(new Vector2(x, y), CreateCircle(radius, sides), color, thickness);
 		}
 
-		private static Vector2[] CreateCircle(double radius, int sides)
+		private Vector2[] CreateCircle(double radius, int sides)
 		{
 			const double max = 2.0 * Math.PI;
 			var points = new Vector2[sides];
@@ -252,11 +257,12 @@ namespace Myra
 
 			for (var i = 0; i < sides; i++)
 			{
-				points[i] = new Vector2((float) (radius * Math.Cos(theta)), (float) (radius * Math.Sin(theta)));
+				points[i] = new Vector2((float)(radius * Math.Cos(theta)), (float)(radius * Math.Sin(theta)));
 				theta += step;
 			}
 
 			return points;
 		}
+#endif
 	}
 }

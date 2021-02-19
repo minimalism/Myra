@@ -2,12 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
 using Texture2D = Stride.Graphics.Texture;
+#else
+using System.Drawing;
+using Texture2D = System.Object;
 #endif
 
 namespace Myra.Graphics2D.TextureAtlases

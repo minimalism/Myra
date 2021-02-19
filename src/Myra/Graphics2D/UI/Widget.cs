@@ -7,12 +7,15 @@ using Myra.MML;
 using Myra.Graphics2D.UI.Properties;
 using Myra.Attributes;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
 using Stride.Input;
+#else
+using System.Drawing;
+using Myra.Platform;
 #endif
 
 namespace Myra.Graphics2D.UI
@@ -616,6 +619,19 @@ namespace Myra.Graphics2D.UI
 
 			set
 			{
+				if (_desktop != null && value == null)
+				{
+					if (_desktop.FocusedKeyboardWidget == this)
+					{
+						_desktop.FocusedKeyboardWidget = null;
+					}
+
+					if (_desktop.FocusedMouseWheelWidget == this)
+					{
+						_desktop.FocusedMouseWheelWidget = null;
+					}
+				}
+
 				_desktop = value;
 				IsMouseInside = false;
 				IsTouchInside = false;
@@ -1038,31 +1054,16 @@ namespace Myra.Graphics2D.UI
 				return;
 			}
 
-			var batch = context.Batch;
-			var oldScissorRectangle = CrossEngineStuff.GetScissor();
+			var oldScissorRectangle = context.Scissor;
 			if (ClipToBounds && !MyraEnvironment.DisableClipping)
 			{
 				var newScissorRectangle = Rectangle.Intersect(oldScissorRectangle, view);
-
 				if (newScissorRectangle.IsEmpty)
 				{
 					return;
 				}
 
-				context.Flush();
-
-				if (context.SpriteBatchBeginParams.TransformMatrix.HasValue)
-				{
-					var pos = new Vector2(newScissorRectangle.X, newScissorRectangle.Y);
-					var size = new Vector2(newScissorRectangle.Width, newScissorRectangle.Height);
-
-					pos = Vector2.Transform(pos, context.SpriteBatchBeginParams.TransformMatrix.Value);
-					size = Vector2.Transform(size, context.SpriteBatchBeginParams.TransformMatrix.Value);
-
-					newScissorRectangle = new Rectangle((int)pos.X, (int)pos.Y, (int)size.X, (int)size.Y);
-				}
-
-				CrossEngineStuff.SetScissor(newScissorRectangle);
+				context.Scissor = newScissorRectangle;
 			}
 
 			var oldOpacity = context.Opacity;
@@ -1077,7 +1078,7 @@ namespace Myra.Graphics2D.UI
 			var background = GetCurrentBackground();
 			if (background != null)
 			{
-				context.Draw(background, BackgroundBounds);
+				background.Draw(context, BackgroundBounds);
 			}
 
 			// Borders
@@ -1087,22 +1088,22 @@ namespace Myra.Graphics2D.UI
 				var borderBounds = BorderBounds;
 				if (BorderThickness.Left > 0)
 				{
-					context.Draw(border, new Rectangle(borderBounds.X, borderBounds.Y, BorderThickness.Left, borderBounds.Height));
+					border.Draw(context, new Rectangle(borderBounds.X, borderBounds.Y, BorderThickness.Left, borderBounds.Height));
 				}
 
 				if (BorderThickness.Top > 0)
 				{
-					context.Draw(border, new Rectangle(borderBounds.X, borderBounds.Y, borderBounds.Width, BorderThickness.Top));
+					border.Draw(context, new Rectangle(borderBounds.X, borderBounds.Y, borderBounds.Width, BorderThickness.Top));
 				}
 
 				if (BorderThickness.Right > 0)
 				{
-					context.Draw(border, new Rectangle(borderBounds.Right - BorderThickness.Right, borderBounds.Y, BorderThickness.Right, borderBounds.Height));
+					border.Draw(context, new Rectangle(borderBounds.Right - BorderThickness.Right, borderBounds.Y, BorderThickness.Right, borderBounds.Height));
 				}
 
 				if (BorderThickness.Bottom > 0)
 				{
-					context.Draw(border, new Rectangle(borderBounds.X, borderBounds.Bottom - BorderThickness.Bottom, borderBounds.Width, BorderThickness.Bottom));
+					border.Draw(context, new Rectangle(borderBounds.X, borderBounds.Bottom - BorderThickness.Bottom, borderBounds.Width, BorderThickness.Bottom));
 				}
 			}
 
@@ -1117,26 +1118,24 @@ namespace Myra.Graphics2D.UI
 			// Optional debug rendering
 			if (MyraEnvironment.DrawWidgetsFrames)
 			{
-				batch.DrawRectangle(Bounds, Color.LightGreen);
+				context.DrawRectangle(Bounds, Color.LightGreen);
 			}
 
 			if (MyraEnvironment.DrawKeyboardFocusedWidgetFrame && IsKeyboardFocused)
 			{
-				batch.DrawRectangle(Bounds, Color.Red);
+				context.DrawRectangle(Bounds, Color.Red);
 			}
 
 			if (MyraEnvironment.DrawMouseWheelFocusedWidgetFrame && IsMouseWheelFocused)
 			{
-				batch.DrawRectangle(Bounds, Color.Yellow);
+				context.DrawRectangle(Bounds, Color.Yellow);
 			}
 
 			if (ClipToBounds && !MyraEnvironment.DisableClipping)
 			{
 				// Restore scissor
-				context.Flush();
-				CrossEngineStuff.SetScissor(oldScissorRectangle);
+				context.Scissor = oldScissorRectangle;
 			}
-
 		}
 
 		public virtual void InternalRender(RenderContext context)
@@ -1152,70 +1151,66 @@ namespace Myra.Graphics2D.UI
 
 			Point result;
 
-			if (Width.HasValue && Height.HasValue)
+			// Lerp available size by Width/Height or MaxWidth/MaxHeight
+			if (Width != null && availableSize.X > Width.Value)
 			{
-				result = new Point(Width.Value, Height.Value);
+				availableSize.X = Width.Value;
+			}
+			else if (MaxWidth != null && availableSize.X > MaxWidth.Value)
+			{
+				availableSize.X = MaxWidth.Value;
+			}
+
+			if (Height != null && availableSize.Y > Height.Value)
+			{
+				availableSize.Y = Height.Value;
+			}
+			else if (MaxHeight != null && availableSize.Y > MaxHeight.Value)
+			{
+				availableSize.Y = MaxHeight.Value;
+			}
+
+			availableSize.X -= MBPWidth;
+			availableSize.Y -= MBPHeight;
+
+			// Do the actual measure
+			// Previously I skipped this step if both Width & Height were set
+			// However that raised an issue - custom InternalMeasure stuff(such as in Menu.InternalMeasure) was skipped as well
+			// So now InternalMeasure is called every time
+			result = InternalMeasure(availableSize);
+
+			// Result lerp
+			if (Width.HasValue)
+			{
+				result.X = Width.Value;
 			}
 			else
 			{
-				// Lerp available size by Width/Height or MaxWidth/MaxHeight
-				if (Width != null && availableSize.X > Width.Value)
+				if (MinWidth.HasValue && result.X < MinWidth.Value)
 				{
-					availableSize.X = Width.Value;
-				}
-				else if (MaxWidth != null && availableSize.X > MaxWidth.Value)
-				{
-					availableSize.X = MaxWidth.Value;
+					result.X = MinWidth.Value;
 				}
 
-				if (Height != null && availableSize.Y > Height.Value)
+				if (MaxWidth.HasValue && result.X > MaxWidth.Value)
 				{
-					availableSize.Y = Height.Value;
+					result.X = MaxWidth.Value;
 				}
-				else if (MaxHeight != null && availableSize.Y > MaxHeight.Value)
+			}
+
+			if (Height.HasValue)
+			{
+				result.Y = Height.Value;
+			}
+			else
+			{
+				if (MinHeight.HasValue && result.Y < MinHeight.Value)
 				{
-					availableSize.Y = MaxHeight.Value;
-				}
-
-				availableSize.X -= MBPWidth;
-				availableSize.Y -= MBPHeight;
-
-				// Do the actual measure
-				result = InternalMeasure(availableSize);
-
-				// Result lerp
-				if (Width.HasValue)
-				{
-					result.X = Width.Value;
-				}
-				else
-				{
-					if (MinWidth.HasValue && result.X < MinWidth.Value)
-					{
-						result.X = MinWidth.Value;
-					}
-
-					if (MaxWidth.HasValue && result.X > MaxWidth.Value)
-					{
-						result.X = MaxWidth.Value;
-					}
+					result.Y = MinHeight.Value;
 				}
 
-				if (Height.HasValue)
+				if (MaxHeight.HasValue && result.Y > MaxHeight.Value)
 				{
-					result.Y = Height.Value;
-				}
-				else
-				{
-					if (MinHeight.HasValue && result.Y < MinHeight.Value)
-					{
-						result.Y = MinHeight.Value;
-					}
-
-					if (MaxHeight.HasValue && result.Y > MaxHeight.Value)
-					{
-						result.Y = MaxHeight.Value;
-					}
+					result.Y = MaxHeight.Value;
 				}
 			}
 
@@ -1231,7 +1226,7 @@ namespace Myra.Graphics2D.UI
 
 		protected virtual Point InternalMeasure(Point availableSize)
 		{
-			return Point.Zero;
+			return Mathematics.PointZero;
 		}
 
 		public virtual void Arrange()

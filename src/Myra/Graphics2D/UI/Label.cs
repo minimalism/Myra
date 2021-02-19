@@ -1,16 +1,16 @@
 ﻿using System.ComponentModel;
 using Myra.Graphics2D.Text;
 using Myra.Graphics2D.UI.Styles;
-using Myra.Utility;
-using System.Xml.Serialization;
 using System;
+using FontStashSharp;
+using Myra.Utility;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
-using Stride.Graphics;
+#else
+using System.Drawing;
 #endif
 
 namespace Myra.Graphics2D.UI
@@ -64,7 +64,7 @@ namespace Myra.Graphics2D.UI
 		}
 
 		[Category("Appearance")]
-		public SpriteFont Font
+		public SpriteFontBase Font
 		{
 			get
 			{
@@ -155,16 +155,12 @@ namespace Myra.Graphics2D.UI
 			get; set;
 		}
 
-		[Browsable(false)]
-		[XmlIgnore]
-		public Color? PressedTextColor
+		internal Color? PressedTextColor
 		{
 			get; set;
 		}
 
-		[Browsable(false)]
-		[XmlIgnore]
-		public bool IsPressed
+		internal bool IsPressed
 		{
 			get; set;
 		}
@@ -203,19 +199,19 @@ namespace Myra.Graphics2D.UI
 
 			var textToDraw = (_autoEllipsisMethod == AutoEllipsisMethod.None) 
 				? _formattedText : _autoEllipsisText;
-			textToDraw.Draw(context.Batch, TextAlign, bounds, context.View, color, useChunkColor, context.Opacity);
+			textToDraw.Draw(context, TextAlign, bounds, context.View, color, useChunkColor);
 		}
 
 		protected override Point InternalMeasure(Point availableSize)
 		{
 			if (Font == null)
 			{
-				return Point.Zero;
+				return Mathematics.PointZero;
 			}
 			
 			var ellipsisEnabled = _autoEllipsisMethod != AutoEllipsisMethod.None;
 
-			var result = Point.Zero;
+			var result = Mathematics.PointZero;
 			if (ellipsisEnabled)
 			{
 				_autoEllipsisText = ApplyAutoEllipsis(availableSize.X, availableSize.Y);
@@ -226,9 +222,9 @@ namespace Myra.Graphics2D.UI
 				result = _formattedText.Measure(_wrap ? availableSize.X : default(int?));
 			}
 
-			if (result.Y < CrossEngineStuff.LineSpacing(Font))
+			if (result.Y < Font.FontSize)
 			{
-				result.Y = CrossEngineStuff.LineSpacing(Font);
+				result.Y = Font.FontSize;
 			}
 
 			return result;

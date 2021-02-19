@@ -1,9 +1,19 @@
 ﻿using System;
 
+#if MONOGAME || FNA
+using Microsoft.Xna.Framework;
+#elif STRIDE
+using Stride.Core.Mathematics;
+#else
+using System.Drawing;
+#endif
+
 namespace Myra.Utility
 {
 	internal static class Mathematics
 	{
+		public static readonly Point PointZero = new Point(0, 0);
+
 		/// <summary>
 		/// The value for which all absolute numbers smaller than are considered equal to zero.
 		/// </summary>

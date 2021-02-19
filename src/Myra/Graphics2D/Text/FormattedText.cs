@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Myra.Utility;
 using Myra.Graphics2D.UI;
+using FontStashSharp;
+using Myra.Utility;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
-using Stride.Graphics;
+#else
+using System.Drawing;
+using System.Numerics;
 #endif
 
 namespace Myra.Graphics2D.Text
@@ -18,7 +20,7 @@ namespace Myra.Graphics2D.Text
 	{
 		public const int NewLineWidth = 0;
 
-		private SpriteFont _font;
+		private SpriteFontBase _font;
 		private string _text = string.Empty;
 		private int _verticalSpacing;
 		private VerticalAlignment _lineAlignment = VerticalAlignment.Center;
@@ -30,7 +32,7 @@ namespace Myra.Graphics2D.Text
 		private StringBuilder _stringBuilder = new StringBuilder();
 		private readonly Dictionary<int, Point> _measures = new Dictionary<int, Point>();
 
-		public SpriteFont Font
+		public SpriteFontBase Font
 		{
 			get
 			{
@@ -253,16 +255,16 @@ namespace Myra.Graphics2D.Text
 
 				_stringBuilder.Append(c);
 
-				var sz = Point.Zero;
+				var sz = Mathematics.PointZero;
 
 				if (c != '\n')
 				{
 					var v = Font.MeasureString(_stringBuilder);
-					sz = new Point((int)v.X, (int)v.Y);
+					sz = new Point((int)v.X, _font.FontSize);
 				}
 				else
 				{
-					sz = new Point(r.X + NewLineWidth, Math.Max(r.Y, CrossEngineStuff.LineSpacing(_font)));
+					sz = new Point(r.X + NewLineWidth, Math.Max(r.Y, _font.FontSize));
 
 					// Break right here
 					++r.CharsCount;
@@ -308,13 +310,13 @@ namespace Myra.Graphics2D.Text
 
 		public Point Measure(int? width)
 		{
-
 			var key = GetMeasureKey(width);
 			if (_measures.TryGetValue(key, out Point result))
 			{
 				return result;
 			}
-
+			
+			var result = Mathematics.PointZero;
 			if (!string.IsNullOrEmpty(_text))
 			{
 				var i = 0;
@@ -363,7 +365,7 @@ namespace Myra.Graphics2D.Text
 
 			if (result.Y == 0)
 			{
-				result.Y = CrossEngineStuff.LineSpacing(_font);
+				result.Y = _font.FontSize;
 			}
 
 			_measures[key] = result;
@@ -447,7 +449,7 @@ namespace Myra.Graphics2D.Text
 			}
 
 			// Calculate size
-			_size = Point.Zero;
+			_size = Mathematics.PointZero;
 			for (i = 0; i < _lines.Count; ++i)
 			{
 				line = _lines[i];
@@ -560,7 +562,7 @@ namespace Myra.Graphics2D.Text
 			return null;
 		}
 
-		public void Draw(SpriteBatch batch, TextAlign align, Rectangle bounds, Rectangle clip, Color textColor, bool useChunkColor, float opacity = 1.0f)
+		public void Draw(RenderContext context, TextAlign align, Rectangle bounds, Rectangle clip, Color textColor, bool useChunkColor)
 		{
 			var y = bounds.Y;
 			foreach (var line in Lines)
@@ -579,7 +581,7 @@ namespace Myra.Graphics2D.Text
 							break;
 					}
 
-					textColor = line.Draw(batch, new Point(x, y), textColor, useChunkColor, opacity);
+					textColor = line.Draw(context, new Vector2(x, y), textColor, useChunkColor);
 				}
 				else
 				{

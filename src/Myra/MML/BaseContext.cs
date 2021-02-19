@@ -3,14 +3,15 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Xml.Serialization;
-using XNAssets.Utility;
+using AssetManagementBase.Utility;
+using FontStashSharp;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
-using Stride.Graphics;
+#else
+using System.Drawing;
 #endif
 
 namespace Myra.MML
@@ -50,7 +51,7 @@ namespace Myra.MML
 					propertyType == typeof(Color) ||
 					propertyType == typeof(Color?) ||
 					typeof(IBrush).IsAssignableFrom(propertyType) ||
-					propertyType == typeof(SpriteFont) ||
+					propertyType == typeof(SpriteFontBase) ||
 					propertyType == typeof(Thickness))
 				{
 					simpleProperties.Add(property);

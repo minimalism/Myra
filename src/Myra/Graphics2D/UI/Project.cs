@@ -10,16 +10,11 @@ using System.Collections.Generic;
 using Myra.Attributes;
 using System.Linq;
 using Myra.Graphics2D.TextureAtlases;
-using XNAssets.Utility;
+using AssetManagementBase.Utility;
 using Myra.Graphics2D.Brushes;
-using XNAssets;
-
-#if !STRIDE
-using Microsoft.Xna.Framework.Graphics;
-#else
-using Stride.Core.Mathematics;
-using Stride.Graphics;
-#endif
+using AssetManagementBase;
+using Myra.Graphics2D.UI.Properties;
+using FontStashSharp;
 
 namespace Myra.Graphics2D.UI
 {
@@ -28,7 +23,7 @@ namespace Myra.Graphics2D.UI
 		public string Namespace { get; set; }
 		public string Class { get; set; }
 		public string OutputPath { get; set; }
-        public string TemplateDesigner { get; set; }
+		public string TemplateDesigner { get; set; }
 		public string TemplateMain { get; set; }
 	}
 
@@ -165,9 +160,9 @@ namespace Myra.Graphics2D.UI
 				{
 					return assetManager.Load<TextureRegion>(name);
 				}
-				else if (t == typeof(SpriteFont))
+				else if (t == typeof(SpriteFontBase))
 				{
-					return assetManager.Load<SpriteFont>(name);
+					return assetManager.Load<SpriteFontBase>(name);
 				}
 
 				throw new Exception(string.Format("Type {0} isn't supported", t.Name));
@@ -175,9 +170,13 @@ namespace Myra.Graphics2D.UI
 
 			return new LoadContext
 			{
+				Namespaces = new[]
+				{ 
+					typeof(Widget).Namespace,
+					typeof(PropertyGrid).Namespace,
+				},
 				LegacyClassNames = LegacyClassNames,
 				ObjectCreator = (t, el) => CreateItem(t, el, stylesheet),
-				Namespace = typeof(Widget).Namespace,
 				ResourceGetter = resourceGetter
 			};
 		}
@@ -224,19 +223,22 @@ namespace Myra.Graphics2D.UI
 		{
 			XDocument xDoc = XDocument.Parse(data);
 
+			var name = xDoc.Root.Name.ToString();
 			Type itemType;
-			if (!IsProportionName(xDoc.Root.Name.ToString()))
-			{
-				var itemNamespace = typeof(Widget).Namespace;
 
-				var widgetName = xDoc.Root.Name.ToString();
+			if (name == "PropertyGrid")
+			{
+				itemType = typeof(PropertyGrid);
+			} else  if (!IsProportionName(name))
+			{
 				string newName;
-				if (LegacyClassNames.TryGetValue(widgetName, out newName))
+				if (LegacyClassNames.TryGetValue(name, out newName))
 				{
-					widgetName = newName;
+					name = newName;
 				}
 
-				itemType = typeof(Widget).Assembly.GetType(itemNamespace + "." + widgetName);
+				var itemNamespace = typeof(Widget).Namespace;
+				itemType = typeof(Widget).Assembly.GetType(itemNamespace + "." + name);
 			}
 			else
 			{

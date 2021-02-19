@@ -1,9 +1,11 @@
-﻿#if !STRIDE
+﻿using FontStashSharp;
+
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-#else
-using Stride.Graphics;
+#elif STRIDE
 using Stride.Core.Mathematics;
+#else
+using System.Drawing;
 #endif
 
 namespace Myra.Graphics2D.UI.Styles
@@ -14,8 +16,8 @@ namespace Myra.Graphics2D.UI.Styles
 		public Color? DisabledTextColor { get; set; }
 		public Color? FocusedTextColor { get; set; }
 
-		public SpriteFont Font { get; set; }
-		public SpriteFont MessageFont { get; set; }
+		public SpriteFontBase Font { get; set; }
+		public SpriteFontBase MessageFont { get; set; }
 
 		public IImage Cursor { get; set; }
 		public IBrush Selection { get; set; }

@@ -1,14 +1,14 @@
 ﻿using System.ComponentModel;
 using Myra.Graphics2D.UI.Styles;
-using System.Xml.Serialization;
 using Myra.Attributes;
+using FontStashSharp;
 
-#if !STRIDE
+#if MONOGAME || FNA
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-#else
+#elif STRIDE
 using Stride.Core.Mathematics;
-using Stride.Graphics;
+#else
+using System.Drawing;
 #endif
 
 namespace Myra.Graphics2D.UI
@@ -45,7 +45,35 @@ namespace Myra.Graphics2D.UI
 		}
 
 		[Category("Appearance")]
-		public SpriteFont Font
+		[StylePropertyPath("/LabelStyle/OverTextColor")]
+		public Color? OverTextColor
+		{
+			get
+			{
+				return InternalChild.OverTextColor;
+			}
+			set
+			{
+				InternalChild.OverTextColor = value;
+			}
+		}
+
+		[Category("Appearance")]
+		[StylePropertyPath("/LabelStyle/PressedTextColor")]
+		public Color? PressedTextColor
+		{
+			get
+			{
+				return InternalChild.PressedTextColor;
+			}
+			set
+			{
+				InternalChild.PressedTextColor = value;
+			}
+		}
+
+		[Category("Appearance")]
+		public SpriteFontBase Font
 		{
 			get
 			{
