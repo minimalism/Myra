@@ -99,7 +99,8 @@ namespace Myra.Graphics2D.TextureAtlases
 		/// <returns></returns>
 		public static TextureRegionAtlas Load(string data, Func<string, Texture2D> textureGetter)
 		{
-			bool isXml;
+			// XML loading disabled because we don't use it
+			/*bool isXml;
 			try
 			{
 				var xDoc = XDocument.Parse(data);
@@ -113,7 +114,7 @@ namespace Myra.Graphics2D.TextureAtlases
 			if (isXml)
 			{
 				return FromXml(data, textureGetter);
-			}
+			}*/
 
 			return Gdx.FromGDX(data, textureGetter);
 		}

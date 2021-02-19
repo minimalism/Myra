@@ -1580,7 +1580,7 @@ namespace Myra.Graphics2D.UI
 					OnMouseLeft();
 				}
 			}
-			else if (Visible && Active && BorderBounds.Contains(Desktop.MousePosition))
+			else if (Desktop != null && Visible && Active && BorderBounds.Contains(Desktop.MousePosition))
 			{
 				OnMouseEntered();
 			}
@@ -1592,7 +1592,7 @@ namespace Myra.Graphics2D.UI
 					OnTouchLeft();
 				}
 			}
-			else if (Visible && Active && BorderBounds.Contains(Desktop.TouchPosition))
+			else if (Desktop != null && Visible && Active && BorderBounds.Contains(Desktop.TouchPosition))
 			{
 				OnTouchEntered();
 			}
