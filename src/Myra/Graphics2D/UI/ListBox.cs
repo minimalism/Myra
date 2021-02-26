@@ -85,7 +85,7 @@ namespace Myra.Graphics2D.UI
 					ImageTextSpacing = item.ImageTextSpacing
 				};
 
-				((ImageTextButton)widget).PressedChanged += ButtonOnPressed;
+				((ImageTextButton)widget).Click += ButtonOnClick;
 			}
 			else
 			{
@@ -120,12 +120,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public override void OnMouseWheel(float delta) {
-			base.OnMouseWheel(delta);
-			InternalChild.OnMouseWheel(delta);
-		}
-
-		private void ButtonOnPressed(object sender, EventArgs eventArgs)
+		private void ButtonOnClick(object sender, EventArgs eventArgs)
 		{
 			var item = (ImageTextButton)sender;
 			if (!item.IsPressed)
@@ -138,6 +133,8 @@ namespace Myra.Graphics2D.UI
 			{
 				SelectedItem = listItem;
 			}
+
+			ComboHideDropdown();
 		}
 
 		private void ComboHideDropdown()
@@ -198,16 +195,6 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		public override void OnTouchDown()
-		{
-			base.OnTouchDown();
-
-			if (!InternalChild._verticalScrollingOn || !InternalChild._verticalScrollbarFrame.Contains(Desktop.TouchPosition))
-			{
-				ComboHideDropdown();
-			}
-		}
-
 		protected override void OnItemCollectionChanged()
 		{
 			base.OnItemCollectionChanged();
@@ -248,6 +235,13 @@ namespace Myra.Graphics2D.UI
 			InternalChild.ScrollPosition = sp;
 		}
 
+		public override void OnMouseWheel(float delta)
+		{
+			base.OnMouseWheel(delta);
+
+			InternalChild.OnMouseWheel(delta);
+		}
+
 		public void ApplyListBoxStyle(ListBoxStyle style)
 		{
 			ApplyWidgetStyle(style);
@@ -276,7 +270,7 @@ namespace Myra.Graphics2D.UI
 
 		protected override void InternalSetStyle(Stylesheet stylesheet, string name)
 		{
-			ApplyListBoxStyle(stylesheet.ListBoxStyles[name]);
+			ApplyListBoxStyle(stylesheet.ListBoxStyles.SafelyGetStyle(name));
 		}
 	}
 }

@@ -209,7 +209,7 @@ namespace Myra.Graphics2D.Text
 					++r.CharsCount;
 					continue;
 				}
-				
+
 				if (SupportsCommands && c == '\\')
 				{
 					if (i < _text.Length - 2 && _text[i + 1] is char commandChar && _text[i + 2] == '[')
@@ -262,8 +262,7 @@ namespace Myra.Graphics2D.Text
 
 				_stringBuilder.Append(c);
 
-				var sz = Mathematics.PointZero;
-
+				Point sz;
 				if (c != '\n')
 				{
 					var v = Font.MeasureString(_stringBuilder);
