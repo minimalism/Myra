@@ -55,6 +55,7 @@ namespace Myra.Graphics2D
 
 #if MONOGAME || FNA || STRIDE
 		private readonly SpriteBatch _renderer;
+		public SpriteBatch Batch => _renderer;
 #else
 		private readonly IMyraRenderer _renderer;
 #endif

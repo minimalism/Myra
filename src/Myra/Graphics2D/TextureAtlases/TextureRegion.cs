@@ -47,6 +47,11 @@ namespace Myra.Graphics2D.TextureAtlases
 			}
 		}
 
+		public void Draw(SpriteBatch batch, Rectangle dest, Color color)
+		{
+			throw new NotImplementedException();
+		}
+
 #if MONOGAME || FNA || STRIDE
 		/// <summary>
 		/// Covers the whole texture

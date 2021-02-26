@@ -1,4 +1,5 @@
-﻿using Myra.Utility;
+﻿using Microsoft.Xna.Framework.Graphics;
+using Myra.Utility;
 using System;
 
 #if MONOGAME || FNA
@@ -64,6 +65,11 @@ namespace Myra.Graphics2D.TextureAtlases
 
 				TextureRegion.Draw(context, dest, c);
 			}
+		}
+		
+		public void Draw(SpriteBatch batch, Rectangle dest, Color color)
+		{
+			throw new NotImplementedException();
 		}
 	}
 }
