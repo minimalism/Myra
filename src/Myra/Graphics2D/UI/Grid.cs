@@ -49,7 +49,7 @@ namespace Myra.Graphics2D.UI
 
 		[Category("Behavior")]
 		[DefaultValue(false)]
-		public bool ShowGridLines { get; set; }
+		public bool ShowGridLines => TSUtil.ShowGridLines;
 
 		[Category("Behavior")]
 		[DefaultValue("White")]
@@ -252,8 +252,6 @@ namespace Myra.Graphics2D.UI
 		{
 			_columnsProportions.CollectionChanged += OnProportionsChanged;
 			_rowsProportions.CollectionChanged += OnProportionsChanged;
-
-			ShowGridLines = false;
 			GridLinesColor = Color.White;
 			HoverIndexCanBeNull = true;
 			CanSelectNothing = false;

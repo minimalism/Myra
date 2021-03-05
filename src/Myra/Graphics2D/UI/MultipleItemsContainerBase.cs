@@ -78,7 +78,6 @@ namespace Myra.Graphics2D.UI
 					w.Parent = null;
 				}
 			}
-			else throw new NotImplementedException(args.Action.ToString());
 
 			InvalidateChildren();
 		}

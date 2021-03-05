@@ -95,6 +95,9 @@ namespace Myra.Graphics2D.UI
 			get; set;
 		}
 
+		// TODO Temphack
+		private bool _prevSelected = false;
+		
 		[Browsable(false)]
 		[XmlIgnore]
 		public bool IsSelected
@@ -106,11 +109,12 @@ namespace Myra.Graphics2D.UI
 
 			set
 			{
-				if (value == IsSelected)
+				if (value == _prevSelected)
 				{
 					return;
 				}
 
+				_prevSelected = value;
 				Button.IsPressed = value;
 				FireSelected();
 			}

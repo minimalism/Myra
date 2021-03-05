@@ -29,7 +29,6 @@ namespace Myra.Graphics2D.UI
 		public bool ShowGridLines
 		{
 			get => InternalChild.ShowGridLines;
-			set => InternalChild.ShowGridLines = value;
 		}
 
 		[Category("StackPanel")]
