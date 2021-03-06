@@ -49,7 +49,7 @@ namespace Myra.Graphics2D.UI
 
 		[Category("Behavior")]
 		[DefaultValue(false)]
-		public bool ShowGridLines => TSUtil.ShowGridLines;
+		public bool ShowGridLines => TrollskogIntegration.ShowGridLines;
 
 		[Category("Behavior")]
 		[DefaultValue("White")]

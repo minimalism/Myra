@@ -137,8 +137,8 @@ namespace Myra.Graphics2D.UI
 					_listBox.SelectedIndex = 0;
 				}
 
-				_listBox.Width = BorderBounds.Width;
-				Desktop.ShowContextMenu(_listBox, new Point(Bounds.X, Bounds.Bottom));
+				_listBox.Width = ActualBounds.Width;
+				Desktop.ShowContextMenu(_listBox, new Point(ActualBounds.X, ActualBounds.Bottom));
 			}
 		}
 
