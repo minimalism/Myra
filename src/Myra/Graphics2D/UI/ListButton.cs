@@ -12,7 +12,7 @@ namespace Myra.Graphics2D.UI
 
 			set
 			{
-				if (IsPressed && _selector.SelectionMode == SelectionMode.Single)
+				if (Parent != null && IsPressed && _selector.SelectionMode == SelectionMode.Single)
 				{
 					// If this is last selected item
 					// Don't allow it to be unselected
