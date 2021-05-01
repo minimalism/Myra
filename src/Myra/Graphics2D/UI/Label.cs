@@ -332,6 +332,8 @@ namespace Myra.Graphics2D.UI
 			OverTextColor = style.OverTextColor;
 			PressedTextColor = style.PressedTextColor;
 			Font = style.Font;
+			TextAlign = style.TextAlign;
+			Wrap = style.Wrap;
 		}
 
 		protected override void InternalSetStyle(Stylesheet stylesheet, string name)

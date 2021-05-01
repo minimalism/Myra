@@ -17,6 +17,8 @@ namespace Myra.Graphics2D.UI.Styles
 		public Color? OverTextColor { get; set; }
 		public Color? PressedTextColor { get; set; }
 		public SpriteFontBase Font { get; set; }
+		public TextAlign TextAlign { get; set; }
+		public bool Wrap { get; set; }
 
 		public LabelStyle()
 		{
@@ -29,6 +31,8 @@ namespace Myra.Graphics2D.UI.Styles
 			OverTextColor = style.OverTextColor;
 			PressedTextColor = style.PressedTextColor;
 			Font = style.Font;
+			TextAlign = style.TextAlign;
+			Wrap = style.Wrap;
 		}
 
 		public override WidgetStyle Clone()
