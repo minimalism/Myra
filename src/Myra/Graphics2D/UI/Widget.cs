@@ -1419,6 +1419,9 @@ namespace Myra.Graphics2D.UI
 			Margin = style.Margin;
 			BorderThickness = style.BorderThickness;
 			Padding = style.Padding;
+
+			HorizontalAlignment = style.HorizontalAlignment;
+			VerticalAlignment = style.VerticalAlignment;
 		}
 
 		public void SetStyle(Stylesheet stylesheet, string name)

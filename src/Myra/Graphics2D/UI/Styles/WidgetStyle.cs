@@ -17,6 +17,8 @@
 		public IBrush OverBackground { get; set; }
 		public IBrush DisabledBackground { get; set; }
 		public IBrush FocusedBackground { get; set; }
+		public HorizontalAlignment HorizontalAlignment { get; set; }
+		public VerticalAlignment VerticalAlignment { get; set; }
 
 		public IBrush Border
 		{
@@ -77,6 +79,9 @@
 			Margin = style.Margin;
 			BorderThickness = style.BorderThickness;
 			Padding = style.Padding;
+
+			HorizontalAlignment = style.HorizontalAlignment;
+			VerticalAlignment = style.VerticalAlignment;
 		}
 
 		public virtual WidgetStyle Clone()
