@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Xml.Serialization;
 using AssetManagementBase.Utility;
 using FontStashSharp;
-
+using Myra.Utility;
 #if MONOGAME || FNA
 using Microsoft.Xna.Framework;
 #elif STRIDE
@@ -46,7 +46,8 @@ namespace Myra.MML
 				var propertyType = property.PropertyType;
 				if (propertyType.IsPrimitive || 
 					propertyType.IsNullablePrimitive() ||
-					propertyType.IsEnum || 
+					propertyType.IsEnum ||
+					propertyType.IsNullableEnum() ||
 					propertyType == typeof(string) ||
 					propertyType == typeof(Color) ||
 					propertyType == typeof(Color?) ||

@@ -665,29 +665,33 @@ namespace Myra.Graphics2D.UI
 
 			var oldScissorRectangle = _renderContext.Scissor;
 
-			_renderContext.Begin();
-
-			_renderContext.Scissor = InternalBounds;
-			_renderContext.View = InternalBounds;
-			_renderContext.Opacity = Opacity;
-
-			if (Stylesheet.Current.DesktopStyle != null &&
-				Stylesheet.Current.DesktopStyle.Background != null)
+			try
 			{
-				Stylesheet.Current.DesktopStyle.Background.Draw(_renderContext, InternalBounds);
-			}
+				_renderContext.Begin();
 
-			foreach (var widget in ChildrenCopy)
-			{
-				if (widget.Visible)
+				_renderContext.Scissor = InternalBounds;
+				_renderContext.View = InternalBounds;
+				_renderContext.Opacity = Opacity;
+
+				if (Stylesheet.Current.DesktopStyle != null &&
+				    Stylesheet.Current.DesktopStyle.Background != null)
 				{
-					widget.Render(_renderContext);
+					Stylesheet.Current.DesktopStyle.Background.Draw(_renderContext, InternalBounds);
+				}
+
+				foreach (var widget in ChildrenCopy)
+				{
+					if (widget.Visible)
+					{
+						widget.Render(_renderContext);
+					}
 				}
 			}
-
-			_renderContext.End();
-
-			_renderContext.Scissor = oldScissorRectangle;
+			finally
+			{
+				_renderContext.End();
+				_renderContext.Scissor = oldScissorRectangle;	
+			}
 		}
 
 		public void Render()

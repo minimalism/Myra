@@ -217,7 +217,6 @@ namespace Myra.Graphics2D.UI
 			PressedBackground = style.PressedBackground;
 			ContentHorizontalAlignment = style.ContentHorizontalAlignment;
 			ContentVerticalAlignment = style.ContentVerticalAlignment;
-			Toggleable = style.Toggleable;
 		}
 
 		private void DesktopTouchUp(object sender, EventArgs args)

@@ -63,7 +63,7 @@ namespace Myra.Graphics2D.UI
 		/// Internal use only. (MyraPad)
 		/// </summary>
 		[DefaultValue(Stylesheet.DefaultStyleName)]
-		public string StyleName { get; set; }
+		public string? StyleName { get; set; }
 
 		[Category("Layout")]
 		[DefaultValue(0)]
@@ -1432,11 +1432,11 @@ namespace Myra.Graphics2D.UI
 			BorderThickness = style.BorderThickness;
 			Padding = style.Padding;
 
-			HorizontalAlignment = style.HorizontalAlignment;
-			VerticalAlignment = style.VerticalAlignment;
+			HorizontalAlignment = style.HorizontalAlignment ?? HorizontalAlignment;
+			VerticalAlignment = style.VerticalAlignment ?? VerticalAlignment;
 		}
 
-		public void SetStyle(Stylesheet stylesheet, string name)
+		public void SetStyle(Stylesheet stylesheet, string? name)
 		{
 			StyleName = name;
 

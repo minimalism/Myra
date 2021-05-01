@@ -17,8 +17,11 @@
 		public IBrush OverBackground { get; set; }
 		public IBrush DisabledBackground { get; set; }
 		public IBrush FocusedBackground { get; set; }
-		public HorizontalAlignment HorizontalAlignment { get; set; }
-		public VerticalAlignment VerticalAlignment { get; set; }
+		
+		// These are nullable to avoid overwriting existing values by default.
+		// This is because certain widgets internally rely on being able to align children.
+		public HorizontalAlignment? HorizontalAlignment { get; set; }
+		public VerticalAlignment? VerticalAlignment { get; set; }
 
 		public IBrush Border
 		{

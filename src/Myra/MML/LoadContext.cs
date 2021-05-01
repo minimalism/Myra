@@ -10,7 +10,7 @@ using System.Xml.Linq;
 using Myra.Attributes;
 using AssetManagementBase.Utility;
 using FontStashSharp;
-
+using Myra.Utility;
 #if MONOGAME || FNA
 using Microsoft.Xna.Framework;
 #elif STRIDE
@@ -62,6 +62,10 @@ namespace Myra.MML
 					if (propertyType.IsEnum)
 					{
 						value = Enum.Parse(propertyType, attr.Value);
+					}
+					else if (propertyType.IsNullableEnum())
+					{
+						value = Enum.Parse(propertyType.GetNullableType(), attr.Value);
 					}
 					else if (propertyType == typeof(Color) || propertyType == typeof(Color?))
 					{

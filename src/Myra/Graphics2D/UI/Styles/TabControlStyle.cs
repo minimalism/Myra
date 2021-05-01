@@ -4,27 +4,32 @@
 	{
 		public ImageTextButtonStyle TabItemStyle
 		{
-			get; set;
+			get;
+			set;
 		}
 
 		public WidgetStyle ContentStyle
 		{
-			get; set;
+			get;
+			set;
 		}
 
 		public int ButtonSpacing
 		{
-			get; set;
+			get;
+			set;
 		}
 
 		public int HeaderSpacing
 		{
-			get; set;
+			get;
+			set;
 		}
 
 		public TabSelectorPosition TabSelectorPosition
 		{
-			get; set;
+			get;
+			set;
 		}
 
 		public TabControlStyle()
@@ -34,7 +39,9 @@
 		public TabControlStyle(TabControlStyle style) : base(style)
 		{
 			TabItemStyle = style.TabItemStyle != null ? new ImageTextButtonStyle(style.TabItemStyle) : null;
-			ContentStyle = style.ContentStyle != null ? new WidgetStyle(style.ContentStyle) : null;
+			ContentStyle = style.ContentStyle != null
+				? new WidgetStyle(style.ContentStyle) 
+				: null;
 
 			ButtonSpacing = style.ButtonSpacing;
 			HeaderSpacing = style.HeaderSpacing;
