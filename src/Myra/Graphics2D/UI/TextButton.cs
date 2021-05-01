@@ -2,9 +2,9 @@
 using Myra.Graphics2D.UI.Styles;
 using Myra.Attributes;
 using FontStashSharp;
-
 #if MONOGAME || FNA
 using Microsoft.Xna.Framework;
+
 #elif STRIDE
 using Stride.Core.Mathematics;
 #else

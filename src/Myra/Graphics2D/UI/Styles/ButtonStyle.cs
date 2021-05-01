@@ -7,7 +7,6 @@
 		public LabelStyle LabelStyle { get; set; }
 		public HorizontalAlignment ContentHorizontalAlignment { get; set; }
 		public VerticalAlignment ContentVerticalAlignment { get; set; }
-		public bool Toggleable { get; set; }
 
 		public ButtonStyle()
 		{
@@ -19,7 +18,6 @@
 			LabelStyle = style.LabelStyle != null ? new LabelStyle(style.LabelStyle) : null;
 			ContentHorizontalAlignment = style.ContentHorizontalAlignment;
 			ContentVerticalAlignment = style.ContentVerticalAlignment;
-			Toggleable = style.Toggleable;
 		}
 
 		public override WidgetStyle Clone()
