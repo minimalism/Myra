@@ -39,7 +39,7 @@ namespace Myra.Graphics2D.UI
 
 		private bool _layoutDirty = true;
 		private bool _widgetsDirty = true;
-		private Widget _focusedKeyboardWidget, _focusedMouseWheelWidget;
+		private Widget? _focusedKeyboardWidget, _focusedMouseWheelWidget;
 		private readonly List<Widget> _widgetsCopy = new List<Widget>();
 		private DateTime _lastTouchDown;
 		private DateTime? _lastKeyDown;
@@ -188,7 +188,7 @@ namespace Myra.Graphics2D.UI
 
 		public Widget ContextMenu { get; private set; }
 
-		public Widget FocusedKeyboardWidget
+		public Widget? FocusedKeyboardWidget
 		{
 			get { return _focusedKeyboardWidget; }
 

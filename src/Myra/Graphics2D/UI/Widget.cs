@@ -41,7 +41,7 @@ namespace Myra.Graphics2D.UI
 		private bool _measureDirty = true;
 		private bool _active = false;
 		private bool _forceInactive = false;
-		private Desktop _desktop;
+		private Desktop? _desktop;
 		private bool _isDraggable = false;
 
 		private Point _lastMeasureSize;
@@ -522,9 +522,12 @@ namespace Myra.Graphics2D.UI
 					return;
 				}
 
+				bool prevValue = Visible;
 				_visible = value;
-
-				OnVisibleChanged();
+				if (prevValue != Visible)
+				{
+					OnVisibleChanged();
+				}
 			}
 		}
 
@@ -591,9 +594,14 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
+		protected virtual void OnPlacedChanged(bool placed)
+		{
+			
+		}
+
 		[XmlIgnore]
 		[Browsable(false)]
-		public virtual Desktop Desktop
+		public virtual Desktop? Desktop
 		{
 			get
 			{
@@ -602,29 +610,33 @@ namespace Myra.Graphics2D.UI
 
 			set
 			{
-				if (_desktop != null && value == null)
+				if (_desktop != value)
 				{
-					if (_desktop.FocusedKeyboardWidget == this)
+					if (_desktop != null && value == null)
 					{
-						_desktop.FocusedKeyboardWidget = null;
+						if (_desktop.FocusedKeyboardWidget == this)
+						{
+							_desktop.FocusedKeyboardWidget = null;
+						}
+
+						if (_desktop.FocusedMouseWheelWidget == this)
+						{
+							_desktop.FocusedMouseWheelWidget = null;
+						}
 					}
 
-					if (_desktop.FocusedMouseWheelWidget == this)
+					_desktop = value;
+					IsMouseInside = false;
+					IsTouchInside = false;
+
+					if (_desktop != null)
 					{
-						_desktop.FocusedMouseWheelWidget = null;
+						InvalidateLayout();
 					}
+
+					SubscribeOnTouchMoved(IsPlaced && IsDraggable);
+					OnPlacedChanged(_desktop != null);
 				}
-
-				_desktop = value;
-				IsMouseInside = false;
-				IsTouchInside = false;
-
-				if (_desktop != null)
-				{
-					InvalidateLayout();
-				}
-
-				SubscribeOnTouchMoved(IsPlaced && IsDraggable);
 			}
 		}
 

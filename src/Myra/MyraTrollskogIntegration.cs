@@ -1,4 +1,7 @@
-﻿namespace Myra
+﻿using Microsoft.Xna.Framework;
+using System;
+
+namespace Myra
 {
 	
 	/// <summary>
@@ -7,5 +10,14 @@
 	public static class TrollskogIntegration
 	{
 		public static bool ShowGridLines { get; set; }
+		
+		public static bool ForceCalculateGlyphs { get; set; }
+	}
+	
+	public interface IButtonWidget {
+		Rectangle Bounds { get; }
+		bool IsPressed { get; set; }
+		event EventHandler LayoutUpdated;
+		event EventHandler PressedChanged;
 	}
 }

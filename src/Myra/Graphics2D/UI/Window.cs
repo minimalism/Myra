@@ -25,6 +25,8 @@ namespace Myra.Graphics2D.UI
 		private Widget _content;
 		private Widget _previousKeyboardFocus, _previousMouseWheelFocus;
 
+		public bool BringToFrontOnClick { get; set; }
+		
 		[Category("Appearance")]
 		public string Title
 		{
@@ -222,7 +224,11 @@ namespace Myra.Graphics2D.UI
 
 		public override void OnTouchDown()
 		{
-			BringToFront();
+			if (BringToFrontOnClick)
+			{
+				BringToFront();
+			}
+
 			base.OnTouchDown();
 		}
 

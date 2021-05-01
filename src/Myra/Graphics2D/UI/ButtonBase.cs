@@ -14,7 +14,7 @@ using Myra.Platform;
 
 namespace Myra.Graphics2D.UI
 {
-	public class ButtonBase<T> : SingleItemContainer<T> where T : Widget
+	public class ButtonBase<T> : SingleItemContainer<T>, IButtonWidget where T : Widget
 	{
 		private bool _isPressed = false;
 

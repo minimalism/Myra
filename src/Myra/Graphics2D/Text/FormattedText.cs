@@ -143,7 +143,7 @@ namespace Myra.Graphics2D.Text
 		{
 			get
 			{
-				return _calculateGlyphs;
+				return _calculateGlyphs || TrollskogIntegration.ForceCalculateGlyphs;
 			}
 
 			set
