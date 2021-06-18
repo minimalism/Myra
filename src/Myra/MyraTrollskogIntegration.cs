@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using FontStashSharp;
+using Microsoft.Xna.Framework;
+using Myra.Graphics2D;
 using System;
 
 namespace Myra
@@ -9,8 +11,11 @@ namespace Myra
 	/// </summary>
 	public static class TrollskogIntegration
 	{
+		public delegate IImage SpriteFunc(string spriteId);
+		public delegate Point MeasureSpriteFunc(string spriteId, SpriteFontBase font);
+		public static SpriteFunc GetSprite { get; set; }
+		public static MeasureSpriteFunc MeasureSprite { get; set; }
 		public static bool ShowGridLines { get; set; }
-		
 		public static bool ForceCalculateGlyphs { get; set; }
 	}
 	
@@ -19,5 +24,6 @@ namespace Myra
 		bool IsPressed { get; set; }
 		event EventHandler LayoutUpdated;
 		event EventHandler PressedChanged;
+		event EventHandler<bool> PlacedChanged;
 	}
 }

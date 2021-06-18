@@ -91,7 +91,7 @@ namespace Myra.Graphics2D.Text
 			else return null;
 		}
 
-		public Color Draw(RenderContext context, Vector2 pos, Color color, bool useChunkColor)
+		public Color Draw(RenderContext context, float x, float y, Color color, bool useChunkColor)
 		{
 			foreach (var chunk in Chunks)
 			{
@@ -100,8 +100,12 @@ namespace Myra.Graphics2D.Text
 					color = chunk.Color.Value;
 				}
 
+				Vector2 pos = chunk.Top != Top
+					? new Vector2(x, y + chunk.Top - Top)
+					: new Vector2(x, y);
+
 				chunk.Draw(context, pos, color);
-				pos.X += chunk.Size.X;
+				x += chunk.Size.X;
 			}
 
 			return color;

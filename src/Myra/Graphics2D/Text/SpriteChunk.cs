@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using FontStashSharp;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -22,10 +23,21 @@ namespace Myra.Graphics2D.Text
 		/// </summary>
 		public int Count => 0;
 
-		public SpriteChunk(string spriteId, Point size)
+		public static string GetSpriteId(string text, int startIndex, int endIndex)
 		{
+			return text.Substring(startIndex, endIndex - startIndex);
+		}
+		
+		public static SpriteChunk GetSpriteChunk(in ChunkInfo chunkInfo)
+		{
+			IImage sprite = TrollskogIntegration.GetSprite(chunkInfo.SpriteId);
+			return new SpriteChunk(sprite, new Point(chunkInfo.X, chunkInfo.Y)) {Color = chunkInfo.Color};
+		}
+		
+		public SpriteChunk(IImage image, Point size)
+		{
+			_image = image;
 			Size = size;
-			_image = UI.Desktop.SpriteFunc(spriteId);
 		}
 
 

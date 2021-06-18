@@ -572,7 +572,7 @@ namespace Myra.Graphics2D.UI.Properties
 						var baseObject = _object as BaseObject;
 						if (baseObject != null)
 						{
-							baseObject.Resources[record.Name] = dlg.Color.ToHexString();
+							// baseObject.Resources[record.Name] = dlg.Color.ToHexString();
 						}
 						FireChanged(propertyType.Name);
 					};
@@ -858,7 +858,7 @@ namespace Myra.Graphics2D.UI.Properties
 			var path = string.Empty;
 			if (baseObject != null)
 			{
-				baseObject.Resources.TryGetValue(record.Name, out path);
+				// baseObject.Resources.TryGetValue(record.Name, out path);
 			}
 
 			var textBox = new TextBox
@@ -922,7 +922,7 @@ namespace Myra.Graphics2D.UI.Properties
 							SetValue(record, _object, newValue);
 							if (baseObject != null)
 							{
-								baseObject.Resources[record.Name] = filePath;
+								// baseObject.Resources[record.Name] = filePath;
 							}
 
 							FireChanged(propertyType.Name);

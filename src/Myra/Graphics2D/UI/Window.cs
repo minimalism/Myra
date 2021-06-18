@@ -22,8 +22,8 @@ namespace Myra.Graphics2D.UI
 	public class Window : SingleItemContainer<VerticalStackPanel>, IContent
 	{
 		private readonly Label _titleLabel;
-		private Widget _content;
-		private Widget _previousKeyboardFocus, _previousMouseWheelFocus;
+		private Widget? _content;
+		private Widget? _previousKeyboardFocus, _previousMouseWheelFocus;
 
 		public bool BringToFrontOnClick { get; set; }
 		
@@ -78,7 +78,7 @@ namespace Myra.Graphics2D.UI
 
 		[Browsable(false)]
 		[Content]
-		public Widget Content
+		public virtual Widget? Content
 		{
 			get
 			{
@@ -181,11 +181,17 @@ namespace Myra.Graphics2D.UI
 			DragHandle = TitleGrid;
 
 			TitleGrid.ColumnsProportions.Add(new Proportion(ProportionType.Fill));
-			TitleGrid.ColumnsProportions.Add(new Proportion(ProportionType.Auto));
 
 			_titleLabel = new Label();
 			TitleGrid.Widgets.Add(_titleLabel);
 
+			InternalChild.Widgets.Add(TitleGrid);
+
+			SetStyle(styleName);
+		}
+
+		public void AddCloseButton()
+		{
 			CloseButton = new ImageButton
 			{
 				GridColumn = 1
@@ -197,12 +203,9 @@ namespace Myra.Graphics2D.UI
 			};
 
 			TitleGrid.Widgets.Add(CloseButton);
-
-			InternalChild.Widgets.Add(TitleGrid);
-
-			SetStyle(styleName);
+			TitleGrid.ColumnsProportions.Add(new Proportion(ProportionType.Auto));
 		}
-
+		
 		public override void UpdateLayout()
 		{
 			base.UpdateLayout();

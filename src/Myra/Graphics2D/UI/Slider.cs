@@ -135,6 +135,15 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
+		public override bool Enabled
+		{
+			get => base.Enabled;
+			set
+			{
+				base.Enabled = value;
+			}
+		}
+
 		/// <summary>
 		/// Fires when the value had been changed
 		/// </summary>
@@ -186,8 +195,11 @@ namespace Myra.Graphics2D.UI
 		{
 			base.OnTouchDown();
 
-			UpdateHint();
-			InternalChild.IsPressed = true;
+			if (Enabled)
+			{
+				UpdateHint();
+				InternalChild.IsPressed = true;
+			}
 		}
 
 		private void UpdateHint()
@@ -237,7 +249,10 @@ namespace Myra.Graphics2D.UI
 				return;
 			}
 
-			UpdateHint();
+			if (Enabled)
+			{
+				UpdateHint();
+			}
 		}
 	}
 }

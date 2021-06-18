@@ -4,9 +4,9 @@ using System.Text;
 using Myra.Graphics2D.UI;
 using FontStashSharp;
 using Myra.Utility;
-
 #if MONOGAME || FNA
 using Microsoft.Xna.Framework;
+
 #elif STRIDE
 using Stride.Core.Mathematics;
 #else
@@ -181,14 +181,11 @@ namespace Myra.Graphics2D.Text
 
 		private const char ColorCommandChar = 'c';
 		private const char SpriteCommandChar = 'i';
+		private const char NewlineCommandChar = 'n';
 
 		internal ChunkInfo LayoutRow(int startIndex, int? width, bool parseCommands)
 		{
-			var r = new ChunkInfo
-			{
-				StartIndex = startIndex,
-				LineEnd = true
-			};
+			var r = new ChunkInfo {StartIndex = startIndex, LineEnd = true};
 
 			if (string.IsNullOrEmpty(_text))
 			{
@@ -212,50 +209,75 @@ namespace Myra.Graphics2D.Text
 
 				if (SupportsCommands && c == '\\')
 				{
-					if (i < _text.Length - 2 && _text[i + 1] is char commandChar && _text[i + 2] == '[')
+					if (i < _text.Length - 2)
 					{
-						// Find end
-						var startPos = i + 3;
-						var j = _text.IndexOf(']', startPos);
+						char commandChar = _text[i + 1];
 
-						if (j != -1)
+						if (_text[i + 2] == '[')
 						{
-							// Found
-							if (i > r.StartIndex)
+							// Find parameter end
+							var parameterStartIndex = i + 3;
+							var parameterEndIndex = _text.IndexOf(']', parameterStartIndex);
+
+							if (parameterEndIndex != -1)
 							{
-								// Break right here, as next chunk is a command block
-								if (commandChar == SpriteCommandChar)
+								// Found
+								if (i > r.StartIndex)
 								{
-									// sprites have width, will this one fit on our line?
-									r.LineEnd = (width != null && (r.X + UI.Desktop.InlineSpriteSize.X) > width.Value);
+									// Break right here, as next chunk is a command block
+									if (commandChar == SpriteCommandChar)
+									{
+										// sprites have width, will this one fit on our line?
+										if (width != null)
+										{
+											var spriteId = SpriteChunk.GetSpriteId(_text, parameterStartIndex, parameterEndIndex);
+											var size = TrollskogIntegration.MeasureSprite(spriteId, _font);
+											r.LineEnd = (r.X + size.X) > width.Value;
+										}
+									}
+									else
+									{
+										r.LineEnd = false;
+									}
+
+									return r;
 								}
-								else
+
+								if (parseCommands && commandChar == ColorCommandChar)
 								{
-									r.LineEnd = false;
+									r.Color = ColorStorage.FromName(_text.Substring(parameterStartIndex, parameterEndIndex - parameterStartIndex));
 								}
-								return r;
+								else if (commandChar == SpriteCommandChar)
+								{
+									// Break because this is a sprite chunk
+									var spriteId = SpriteChunk.GetSpriteId(_text, parameterStartIndex, parameterEndIndex);
+									var size = TrollskogIntegration.MeasureSprite(spriteId, _font);
+									
+									r.LineEnd = parameterEndIndex == _text.Length - 1;
+									r.X = size.X;
+									r.Y = size.Y;
+									r.SpriteId = spriteId;
+									r.CharsCount = parameterEndIndex - r.StartIndex + 1;
+									return r;
+								}
 							}
 
-							if (parseCommands && commandChar == ColorCommandChar)
-							{
-								r.Color = ColorStorage.FromName(_text.Substring(startPos, j - startPos));
-							}
-							else if (commandChar == SpriteCommandChar)
-							{
-								// Break because this is a sprite chunk
-								r.LineEnd = j == _text.Length - 1;
-								r.X = UI.Desktop.InlineSpriteSize.X;
-								r.Y = UI.Desktop.InlineSpriteSize.Y;
-								r.IsSprite = true;
-								r.CharsCount = j - r.StartIndex + 1;
-								lastBreakPosition = j;
-								lastBreakMeasure = UI.Desktop.InlineSpriteSize;
-								return r;
-							}
-
-							r.StartIndex = j + 1;
-							i = j;
+							r.StartIndex = parameterEndIndex + 1;
+							i = parameterEndIndex;
 							continue;
+						}
+
+						if (commandChar == NewlineCommandChar)
+						{
+							Point sz2 = new(r.X + NewLineWidth, Math.Max(r.Y, _font.FontSize));
+
+							// Break right here, consuming 2 chars '\\' and 'n'
+							r.SkipChars = 2;
+							r.CharsCount += 2;
+							r.LineEnd = true;
+							r.X = sz2.X;
+							r.Y = sz2.Y;
+							break;
 						}
 					}
 				}
@@ -321,7 +343,7 @@ namespace Myra.Graphics2D.Text
 			{
 				return result;
 			}
-			
+
 			result = Mathematics.PointZero;
 			if (!string.IsNullOrEmpty(_text))
 			{
@@ -338,10 +360,12 @@ namespace Myra.Graphics2D.Text
 					{
 						lineHeight = chunkInfo.Y;
 					}
+
 					if (i == chunkInfo.StartIndex && chunkInfo.CharsCount == 0 && remainingWidth == width)
 					{
 						break;
 					}
+
 					lineWidth += chunkInfo.X;
 					i = chunkInfo.StartIndex + chunkInfo.CharsCount;
 
@@ -395,10 +419,7 @@ namespace Myra.Graphics2D.Text
 			}
 
 			var i = 0;
-			var line = new TextLine
-			{
-				TextStartIndex = i
-			};
+			var line = new TextLine {TextStartIndex = i};
 
 			var width = Width;
 			while (i < _text.Length)
@@ -410,21 +431,14 @@ namespace Myra.Graphics2D.Text
 				}
 
 				ITextChunk chunk;
-				if (c.IsSprite)
+				if (c.SpriteId != null)
 				{
-					// trim off the \\i{} tag and pass in only the sprite id
-					chunk = new SpriteChunk(_text.Substring(c.StartIndex + 3, c.CharsCount - 4), new Point(c.X, c.Y))
-					{
-						Color = c.Color
-					};
+					chunk = SpriteChunk.GetSpriteChunk(c);
 				}
 				else
 				{
-					chunk = new TextChunk(_font, _text.Substring(c.StartIndex, c.CharsCount), new Point(c.X, c.Y), CalculateGlyphs)
-					{
-						TextStartIndex = i,
-						Color = c.Color
-					};
+					chunk = new TextChunk(_font, _text.Substring(c.StartIndex, c.CharsCount - c.SkipChars), new Point(c.X, c.Y),
+						CalculateGlyphs) {TextStartIndex = i, Color = c.Color};
 				}
 
 				width -= chunk.Size.X;
@@ -444,11 +458,8 @@ namespace Myra.Graphics2D.Text
 				{
 					// New line
 					_lines.Add(line);
-
-					line = new TextLine
-					{
-						TextStartIndex = i
-					};
+					
+					line = new TextLine {TextStartIndex = i};
 
 					width = Width;
 				}
@@ -568,7 +579,8 @@ namespace Myra.Graphics2D.Text
 			return null;
 		}
 
-		public void Draw(RenderContext context, TextAlign align, Rectangle bounds, Rectangle clip, Color textColor, bool useChunkColor)
+		public void Draw(RenderContext context, TextAlign align, Rectangle bounds, Rectangle clip, Color textColor,
+			bool useChunkColor)
 		{
 			var y = bounds.Y;
 			foreach (var line in Lines)
@@ -587,7 +599,7 @@ namespace Myra.Graphics2D.Text
 							break;
 					}
 
-					textColor = line.Draw(context, new Vector2(x, y), textColor, useChunkColor);
+					textColor = line.Draw(context, x, y, textColor, useChunkColor);
 				}
 				else
 				{

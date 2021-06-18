@@ -596,7 +596,7 @@ namespace Myra.Graphics2D.UI
 
 		protected virtual void OnPlacedChanged(bool placed)
 		{
-			
+			PlacedChanged?.Invoke(this, placed);
 		}
 
 		[XmlIgnore]
@@ -626,8 +626,17 @@ namespace Myra.Graphics2D.UI
 					}
 
 					_desktop = value;
-					IsMouseInside = false;
-					IsTouchInside = false;
+					if (IsMouseInside)
+					{
+						OnMouseLeft();
+						IsMouseInside = false;
+					}
+
+					if (IsTouchInside)
+					{
+						OnTouchLeft();
+						IsTouchInside = false;
+					}
 
 					if (_desktop != null)
 					{
@@ -927,6 +936,8 @@ namespace Myra.Graphics2D.UI
 
 		public virtual bool IsSolidAt(in Point p) => Background != null;
 
+		public event EventHandler<bool> PlacedChanged;
+		
 		public event EventHandler VisibleChanged;
 		public event EventHandler EnabledChanged;
 
@@ -1724,8 +1735,13 @@ namespace Myra.Graphics2D.UI
 
 			ConstrainToBounds(ref newLeft, ref newTop);
 
-			Left = newLeft;
-			Top = newTop;
+			DragTo(newLeft, newTop);
+		}
+
+		protected virtual void DragTo(int left, int top)
+		{
+			Left = left;
+			Top = top;
 		}
 
 		private void ConstrainToBounds(ref int newLeft, ref int newTop)

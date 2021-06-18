@@ -8,10 +8,10 @@ namespace Myra.MML
 {
 	public class BaseObject: IItemWithId
 	{
-		private string _id = null;
+		private string? _id = null;
 
 		[DefaultValue(null)]
-		public string Id
+		public string? Id
 		{
 			get
 			{
@@ -33,22 +33,22 @@ namespace Myra.MML
 		/// <summary>
 		/// Holds custom user attributes not mapped to the object
 		/// </summary>
-		[XmlIgnore]
+		/*[XmlIgnore]
 		[Browsable(false)]
-		public Dictionary<string, string> UserData { get; private set; } = new Dictionary<string, string>();
+		public Dictionary<string, string> UserData { get; private set; } = new Dictionary<string, string>();*/
 
-		/// <summary>
+		/*/// <summary>
 		/// External files used by this object
 		/// </summary>
 		[XmlIgnore]
 		[Browsable(false)]
-		public Dictionary<string, string> Resources { get; private set; } = new Dictionary<string, string>();
+		public Dictionary<string, string> Resources { get; private set; } = new Dictionary<string, string>();*/
 
-		public event EventHandler IdChanged;
+		//public event EventHandler IdChanged;
 
 		protected internal virtual void OnIdChanged()
 		{
-			IdChanged.Invoke(this);
+			//IdChanged.Invoke(this);
 		}
 	}
 }

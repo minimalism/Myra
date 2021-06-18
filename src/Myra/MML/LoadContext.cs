@@ -99,7 +99,8 @@ namespace Myra.MML
 
 							if (baseObject != null)
 							{
-								baseObject.Resources[property.Name] = attr.Value;
+								throw new NotImplementedException("Todo resources");
+								// baseObject.Resources[property.Name] = attr.Value;
 							}
 						}
 						catch (Exception)
@@ -133,7 +134,8 @@ namespace Myra.MML
 					// Stow away custom user attributes
 					if (propertyName.StartsWith(UserDataAttributePrefix) && baseObject != null)
 					{
-						baseObject.UserData.Add(propertyName, attr.Value);
+						throw new NotImplementedException($"Unhandled property {propertyName}");
+						// baseObject.UserData.Add(propertyName, attr.Value);
 					}
 				}
 			}

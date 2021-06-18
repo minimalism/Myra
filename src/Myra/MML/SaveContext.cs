@@ -68,7 +68,9 @@ namespace Myra.MML
 					{
 						if (baseObject != null)
 						{
-							baseObject.Resources.TryGetValue(property.Name, out str);
+							throw new NotImplementedException("Todo resources");
+
+							//baseObject.Resources.TryGetValue(property.Name, out str);
 						}
 					}
 					else

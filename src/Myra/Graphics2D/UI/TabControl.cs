@@ -217,7 +217,7 @@ namespace Myra.Graphics2D.UI
 				ImageTextSpacing = item.ImageTextSpacing
 			};
 
-			button.Click += ButtonOnClick;
+			button.PressedChanged += ButtonOnPressedChanged;
 
 			_buttonProportions.Insert(index, new Proportion(ProportionType.Auto));
 			_gridButtons.Widgets.Insert(index, button);
@@ -267,11 +267,14 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		private void ButtonOnClick(object sender, EventArgs eventArgs)
+		private void ButtonOnPressedChanged(object sender, EventArgs eventArgs)
 		{
 			var item = (ImageTextButton)sender;
-			var index = _gridButtons.Widgets.IndexOf(item);
-			SelectedIndex = index;
+			if (item.IsPressed)
+			{
+				var index = _gridButtons.Widgets.IndexOf(item);
+				SelectedIndex = index;
+			}
 		}
 
 		public void ApplyTabControlStyle(TabControlStyle style)
