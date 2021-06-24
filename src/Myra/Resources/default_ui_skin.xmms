@@ -4,6 +4,12 @@
     <Font Id="default-font" File="default_font_small.fnt"/>
     <Font Id="large-font" File="default_font.fnt"/>
   </Fonts>
+  <GridStyles>
+    <GridStyle></GridStyle>
+  </GridStyles>
+  <StackPanelStyles>
+    <StackPanelStyle></StackPanelStyle>
+  </StackPanelStyles> 
   <LabelStyles>
     <LabelStyle Font="default-font" TextColor="white" DisabledTextColor="gray" />
   </LabelStyles>

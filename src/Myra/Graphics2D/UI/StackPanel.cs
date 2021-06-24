@@ -1,4 +1,5 @@
 ﻿using Myra.Attributes;
+using Myra.Graphics2D.UI.Styles;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Xml.Serialization;
@@ -102,7 +103,7 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		protected StackPanel()
+		protected StackPanel(string styleName = Stylesheet.DefaultStyleName)
 		{
 			HorizontalAlignment = HorizontalAlignment.Stretch;
 			VerticalAlignment = VerticalAlignment.Stretch;
@@ -110,6 +111,8 @@ namespace Myra.Graphics2D.UI
 			InternalChild = new Grid();
 			DefaultProportion = Proportion.StackPanelDefault;
 			Widgets.CollectionChanged += Widgets_CollectionChanged;
+			
+			SetStyle(styleName);
 		}
 
 		private void UpdateGrid()
@@ -165,6 +168,21 @@ namespace Myra.Graphics2D.UI
 			UpdateGrid();
 
 			base.Arrange();
+		}
+
+		protected override void InternalSetStyle(Stylesheet stylesheet, string name)
+		{
+			ApplyStackPanelStyle(stylesheet.StackPanelStyles.SafelyGetStyle(name));
+		}
+
+		private void ApplyStackPanelStyle(StackPanelStyle stackPanelStyle)
+		{
+			this.Spacing = stackPanelStyle.Spacing;
+			if (stackPanelStyle.DefaultProportion != null)
+			{
+				this.DefaultProportion = stackPanelStyle.DefaultProportion;
+			}
+			base.ApplyWidgetStyle(stackPanelStyle);
 		}
 	}
 }

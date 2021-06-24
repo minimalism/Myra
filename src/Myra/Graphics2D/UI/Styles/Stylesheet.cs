@@ -51,6 +51,9 @@ namespace Myra.Graphics2D.UI.Styles
 		private readonly Dictionary<string, LabelStyle> _labelStyles = new Dictionary<string, LabelStyle>();
 		private readonly Dictionary<string, TextBoxStyle> _textBoxStyles = new Dictionary<string, TextBoxStyle>();
 		private readonly Dictionary<string, ButtonStyle> _buttonStyles = new Dictionary<string, ButtonStyle>();
+		private readonly Dictionary<string, GridStyle> _gridStyles = new Dictionary<string, GridStyle>();
+		private readonly Dictionary<string, StackPanelStyle> _stackPanelStyles =
+			new Dictionary<string, StackPanelStyle>();
 		private readonly Dictionary<string, ImageTextButtonStyle> _checkBoxStyles = new Dictionary<string, ImageTextButtonStyle>();
 		private readonly Dictionary<string, ImageTextButtonStyle> _radioButtonStyles = new Dictionary<string, ImageTextButtonStyle>();
 		private readonly Dictionary<string, SpinButtonStyle> _spinButtonStyles = new Dictionary<string, SpinButtonStyle>();
@@ -386,6 +389,14 @@ namespace Myra.Graphics2D.UI.Styles
 				return _textBoxStyles;
 			}
 		}
+		
+		public Dictionary<string, GridStyle> GridStyles
+		{
+			get
+			{
+				return _gridStyles;
+			}
+		}
 
 		public Dictionary<string, ButtonStyle> ButtonStyles
 		{
@@ -544,6 +555,14 @@ namespace Myra.Graphics2D.UI.Styles
 			get
 			{
 				return _windowStyles;
+			}
+		}
+
+		public Dictionary<string, StackPanelStyle> StackPanelStyles
+		{
+			get
+			{
+				return _stackPanelStyles;
 			}
 		}
 

@@ -1,3 +1,4 @@
+using Myra.Graphics2D.UI.Styles;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -5,9 +6,9 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using Myra.Utility;
 using System.Xml.Serialization;
-
 #if MONOGAME || FNA
 using Microsoft.Xna.Framework;
+
 #elif STRIDE
 using Stride.Core.Mathematics;
 #else
@@ -89,11 +90,9 @@ namespace Myra.Graphics2D.UI
 			}
 		}
 
-		[Browsable(false)]
-		public Proportion DefaultColumnProportion { get; set; } = Proportion.GridDefault;
+		[Browsable(false)] public Proportion DefaultColumnProportion { get; set; } = Proportion.GridDefault;
 
-		[Browsable(false)]
-		public Proportion DefaultRowProportion { get; set; } = Proportion.GridDefault;
+		[Browsable(false)] public Proportion DefaultRowProportion { get; set; } = Proportion.GridDefault;
 
 		[Browsable(false)]
 		public ObservableCollection<Proportion> ColumnsProportions
@@ -107,11 +106,9 @@ namespace Myra.Graphics2D.UI
 			get { return _rowsProportions; }
 		}
 
-		[Category("Appearance")]
-		public IBrush SelectionBackground { get; set; }
+		[Category("Appearance")] public IBrush SelectionBackground { get; set; }
 
-		[Category("Appearance")]
-		public IBrush SelectionHoverBackground { get; set; }
+		[Category("Appearance")] public IBrush SelectionHoverBackground { get; set; }
 
 		[Category("Behavior")]
 		[DefaultValue(GridSelectionMode.None)]
@@ -248,13 +245,15 @@ namespace Myra.Graphics2D.UI
 		public event EventHandler SelectedIndexChanged = null;
 		public event EventHandler HoverIndexChanged = null;
 
-		public Grid()
+		public Grid(string styleName = Stylesheet.DefaultStyleName)
 		{
 			_columnsProportions.CollectionChanged += OnProportionsChanged;
 			_rowsProportions.CollectionChanged += OnProportionsChanged;
 			GridLinesColor = Color.White;
 			HoverIndexCanBeNull = true;
 			CanSelectNothing = false;
+
+			SetStyle(styleName);
 		}
 
 		public int GetColumnWidth(int index)
@@ -300,7 +299,7 @@ namespace Myra.Graphics2D.UI
 		public Rectangle GetCellRectangle(int col, int row)
 		{
 			if (col < 0 || col >= _cellLocationsX.Count ||
-				row < 0 || row >= _cellLocationsY.Count)
+			    row < 0 || row >= _cellLocationsY.Count)
 			{
 				return Rectangle.Empty;
 			}
@@ -475,8 +474,8 @@ namespace Myra.Graphics2D.UI
 
 			// Put all visible widget into 2d array
 			if (_widgetsByGridPosition == null ||
-				_widgetsByGridPosition.GetLength(0) < rows ||
-				_widgetsByGridPosition.GetLength(1) < columns)
+			    _widgetsByGridPosition.GetLength(0) < rows ||
+			    _widgetsByGridPosition.GetLength(1) < columns)
 			{
 				_widgetsByGridPosition = new List<Widget>[rows, columns];
 			}
@@ -526,7 +525,7 @@ namespace Myra.Graphics2D.UI
 
 						var measuredSize = Mathematics.PointZero;
 						if (rowProportion.Type != ProportionType.Pixels ||
-							colProportion.Type != ProportionType.Pixels)
+						    colProportion.Type != ProportionType.Pixels)
 						{
 							measuredSize = widget.Measure(availableSize);
 						}
@@ -783,7 +782,19 @@ namespace Myra.Graphics2D.UI
 
 			var bounds = ActualBounds;
 
-			var rect = new Rectangle(bounds.Left + _cellLocationsX[col], bounds.Top + _cellLocationsY[row], cellSize.X, cellSize.Y);
+			var rect = new Rectangle(
+				bounds.Left + _cellLocationsX[col],
+				bounds.Top + _cellLocationsY[row],
+				cellSize.X,
+				cellSize.Y);
+
+			if (FlipY && control.GridRowSpan > 1)
+			{
+				for (int i = 1; i < control.GridRowSpan; i++)
+				{
+					rect.Y -= _rowHeights[row + i];
+				}
+			}
 
 			if (rect.Right > bounds.Right)
 			{
@@ -828,7 +839,8 @@ namespace Myra.Graphics2D.UI
 					break;
 				case GridSelectionMode.Row:
 					{
-						if (HoverRowIndex != null && HoverRowIndex != SelectedRowIndex && SelectionHoverBackground != null)
+						if (HoverRowIndex != null && HoverRowIndex != SelectedRowIndex &&
+						    SelectionHoverBackground != null)
 						{
 							var rect = Rectangle.Intersect(new Rectangle(bounds.Left,
 								_cellLocationsY[HoverRowIndex.Value] + bounds.Top - RowSpacing / 2,
@@ -851,9 +863,11 @@ namespace Myra.Graphics2D.UI
 					break;
 				case GridSelectionMode.Column:
 					{
-						if (HoverColumnIndex != null && HoverColumnIndex != SelectedColumnIndex && SelectionHoverBackground != null)
+						if (HoverColumnIndex != null && HoverColumnIndex != SelectedColumnIndex &&
+						    SelectionHoverBackground != null)
 						{
-							var rect = Rectangle.Intersect(new Rectangle(_cellLocationsX[HoverColumnIndex.Value] + bounds.Left - ColumnSpacing / 2,
+							var rect = Rectangle.Intersect(new Rectangle(
+								_cellLocationsX[HoverColumnIndex.Value] + bounds.Left - ColumnSpacing / 2,
 								bounds.Top,
 								_colWidths[HoverColumnIndex.Value] + ColumnSpacing,
 								bounds.Height), context.View);
@@ -863,7 +877,8 @@ namespace Myra.Graphics2D.UI
 
 						if (SelectedColumnIndex != null && SelectionBackground != null)
 						{
-							var rect = Rectangle.Intersect(new Rectangle(_cellLocationsX[SelectedColumnIndex.Value] + bounds.Left - ColumnSpacing / 2,
+							var rect = Rectangle.Intersect(new Rectangle(
+								_cellLocationsX[SelectedColumnIndex.Value] + bounds.Left - ColumnSpacing / 2,
 								bounds.Top,
 								_colWidths[SelectedColumnIndex.Value] + ColumnSpacing,
 								bounds.Height), context.View);
@@ -875,10 +890,11 @@ namespace Myra.Graphics2D.UI
 				case GridSelectionMode.Cell:
 					{
 						if (HoverRowIndex != null && HoverColumnIndex != null &&
-							(HoverRowIndex != SelectedRowIndex || HoverColumnIndex != SelectedColumnIndex) &&
-							SelectionHoverBackground != null)
+						    (HoverRowIndex != SelectedRowIndex || HoverColumnIndex != SelectedColumnIndex) &&
+						    SelectionHoverBackground != null)
 						{
-							var rect = Rectangle.Intersect(new Rectangle(_cellLocationsX[HoverColumnIndex.Value] + bounds.Left - ColumnSpacing / 2,
+							var rect = Rectangle.Intersect(new Rectangle(
+								_cellLocationsX[HoverColumnIndex.Value] + bounds.Left - ColumnSpacing / 2,
 								_cellLocationsY[HoverRowIndex.Value] + bounds.Top - RowSpacing / 2,
 								_colWidths[HoverColumnIndex.Value] + ColumnSpacing,
 								_rowHeights[HoverRowIndex.Value] + RowSpacing), context.View);
@@ -888,7 +904,8 @@ namespace Myra.Graphics2D.UI
 
 						if (SelectedRowIndex != null && SelectedColumnIndex != null && SelectionBackground != null)
 						{
-							var rect = Rectangle.Intersect(new Rectangle(_cellLocationsX[SelectedColumnIndex.Value] + bounds.Left - ColumnSpacing / 2,
+							var rect = Rectangle.Intersect(new Rectangle(
+								_cellLocationsX[SelectedColumnIndex.Value] + bounds.Left - ColumnSpacing / 2,
 								_cellLocationsY[SelectedRowIndex.Value] + bounds.Top - RowSpacing / 2,
 								_colWidths[SelectedColumnIndex.Value] + ColumnSpacing,
 								_rowHeights[SelectedRowIndex.Value] + RowSpacing), context.View);
@@ -946,6 +963,7 @@ namespace Myra.Graphics2D.UI
 					HoverRowIndex = null;
 					HoverColumnIndex = null;
 				}
+
 				return;
 			}
 
@@ -1033,6 +1051,30 @@ namespace Myra.Graphics2D.UI
 					SelectedColumnIndex = null;
 				}
 			}
+		}
+
+		protected override void InternalSetStyle(Stylesheet stylesheet, string name)
+		{
+			ApplyGridStyle(stylesheet.GridStyles.SafelyGetStyle(name));
+			base.InternalSetStyle(stylesheet, name);
+		}
+
+		private void ApplyGridStyle(GridStyle gridStyle)
+		{
+			_rowSpacing = gridStyle.RowSpacing;
+			_columnSpacing = gridStyle.ColumnSpacing;
+
+			if (gridStyle.DefaultColumnProportion != null)
+			{
+				DefaultColumnProportion = gridStyle.DefaultColumnProportion;
+			}
+
+			if (gridStyle.DefaultRowProportion != null)
+			{
+				DefaultRowProportion = gridStyle.DefaultRowProportion;
+			}
+
+			ApplyWidgetStyle(gridStyle);
 		}
 	}
 }
